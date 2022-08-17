@@ -1,3 +1,6 @@
+'''
+To actually run the module
+'''
 import numpy as np
 import scipy as sci
 import pandas as pd
