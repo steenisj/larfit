@@ -28,7 +28,7 @@ class LeastSquares:
         energy = pd.to_numeric(self.data[dataset_label].iloc[0:,x_index]).to_numpy() 
         Efield = pd.to_numeric(self.data[dataset_label].iloc[0:,y_index]).to_numpy() 
         init_n_yield = pd.to_numeric(self.data[dataset_label].iloc[0:,z_index]).to_numpy() #Before being divided by energy
-        n_yield = np.divide(init_n_yield,energy)
+        #n_yield = np.divide(init_n_yield,energy)
 
         #X and Y range for plotting the fit
         x_min = np.min(energy)
@@ -47,7 +47,7 @@ class LeastSquares:
 
             fit_y = model(x_range, *parameters)
             print(fit_y)
-            plt.plot(energy, n_yield, 'o', label='data')
+            plt.plot(energy, init_n_yield, 'o', label='data')
             plt.plot(x_range, fit_y, '-', label='fit')
             plt.xlabel('Energy')
             plt.ylabel('Yield Density')
@@ -58,22 +58,24 @@ class LeastSquares:
             return parameters, x_range, fit_y
 
         if dimension==3:
-            parameters, covariance = curve_fit(model, (energy, Efield), n_yield, p0=init_params) #Storing errors and params from fit
+            parameters, covariance = curve_fit(model, (energy, Efield), init_n_yield, p0=init_params) #Storing errors and params from fit
             print(parameters)
+            #print(n_yield)
 
             fig = plt.figure()
             ax = fig.gca(projection='3d')
             ax.set_title(dataset_label)
-            ax.scatter(energy, Efield, n_yield)
+            ax.scatter(energy, Efield, init_n_yield, label='Data')
             ax.set_xlabel(self.data[dataset_label].columns[x_index])
             ax.set_ylabel(self.data[dataset_label].columns[y_index])
-            ax.set_zlabel(self.data[dataset_label].columns[z_index])
+            ax.set_zlabel('Yield Density')#self.data[dataset_label].columns[z_index]) 
+            ax.set_xscale('log')
 
             X, Y = np.meshgrid(x_range, y_range)
             z_range = model((X, Y), *parameters)
             Z = z_range
             ax.plot_surface(X, Y, Z, color='orange')
-
+            ax.legend()
             fig.tight_layout()
             plt.show()
 
@@ -89,9 +91,12 @@ class LeastSquares:
 
         for i in E_arr: #Iterating through Efield values
             yields = model((x_range, i), *parameters)
-            plt.plot(x_range, yields, label=i)
+            plt.plot(x_range, yields, label=round(i, 0))
         plt.xlabel('Energy')
         plt.ylabel('Yield Density')
+        legend = plt.legend()
+        legend.set_title("E-Field [V/cm]", prop = {'size':10})
         plt.title('E v. Yield Density')
+        plt.xscale('log')
         plt.show()
 

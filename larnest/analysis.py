@@ -8,7 +8,7 @@ from models.default_models import DefaultModels as dm
 #Options for plotting the data: THIS IS WHAT THE USER MODIFIES
 file_location = "/mnt/c/Users/jahe0/Desktop/Physics Research/Graduate Research/larnest_data/"
 data = lar(file_location) #Tell it where to find the data file.
-dataset_label = 'nr_light' #For indexing within datasets
+dataset_label = 'nr_charge' #For indexing within datasets
 
 if dataset_label == 'nr_light':
     x_index = 1 #Energy

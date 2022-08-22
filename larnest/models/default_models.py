@@ -37,15 +37,15 @@ class ModelSelector:
             dimension = 2
             init_params = [0,0]
             return DefaultModels.Gauss, init_params, dimension
-        if func_index == 1: #1 Failed
+        if func_index == 1: #1 
             dimension = 3
             init_params = [0.1, -0.0932, 2.998, 0.3, 2.94]
             return DefaultModels.NRElectronYields, init_params, dimension
-        if func_index == 2: #2 Recreated 
+        if func_index == 2: #2  
             dimension = 3
             init_params = [11.1, 0.087, 0.1, -0.0932, 2.998, 0.3, 2.94]
             return DefaultModels.NRPhotonYields, init_params, dimension
-        if func_index == 3: #3 Recreated
+        if func_index == 3: #3 
             dimension = 2
             init_params = [11.1, 0.087]
             return DefaultModels.NRTotalYields, init_params, dimension

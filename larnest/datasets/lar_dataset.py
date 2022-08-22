@@ -9,8 +9,6 @@ import pandas as pd
 import csv
 
 class LArDataset:
-    """
-    """
     def __init__(self,
         data_dir:   str,
         use_converted:  bool=True,
