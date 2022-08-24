@@ -5,11 +5,13 @@ This script will allow us to perform least squares fitting on data.
 #In the Z axis, we should be plotting yield/energy which we ALSO call yield (nick says 'yield density') <N> = Y*E
 
 from dataclasses import dataclass
+from turtle import color
 import numpy as np
 from scipy.optimize import curve_fit
 import pandas as pd
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.cm as cm
 
 import sys
 sys.path.insert(0,'models') #Change to the /models folder
@@ -28,7 +30,7 @@ class LeastSquares:
         energy = pd.to_numeric(self.data[dataset_label].iloc[0:,x_index]).to_numpy() 
         Efield = pd.to_numeric(self.data[dataset_label].iloc[0:,y_index]).to_numpy() 
         init_n_yield = pd.to_numeric(self.data[dataset_label].iloc[0:,z_index]).to_numpy() #Before being divided by energy
-        #n_yield = np.divide(init_n_yield,energy)
+        labels = self.data[dataset_label].iloc[0:,0].astype(str).values.tolist()
 
         #X and Y range for plotting the fit
         x_min = np.min(energy)
@@ -65,11 +67,24 @@ class LeastSquares:
             fig = plt.figure()
             ax = fig.gca(projection='3d')
             ax.set_title(dataset_label)
-            ax.scatter(energy, Efield, init_n_yield, label='Data')
             ax.set_xlabel(self.data[dataset_label].columns[x_index])
             ax.set_ylabel(self.data[dataset_label].columns[y_index])
             ax.set_zlabel('Yield Density')#self.data[dataset_label].columns[z_index]) 
 
+            reduced_labels = []
+            for i in labels:
+                if i in reduced_labels:
+                    continue
+                elif i not in reduced_labels:
+                    reduced_labels.append(i)
+            for i in np.arange(len(reduced_labels)):
+                current_label = reduced_labels[i]
+                indices = [j for j, x in enumerate(labels) if x == current_label] 
+                arr1 = energy[indices]
+                arr2 = Efield[indices]
+                arr3 = init_n_yield[indices]
+                ax.scatter(arr1, arr2, arr3, label=current_label)
+    
             X, Y = np.meshgrid(x_range, y_range)
             z_range = model((X, Y), *parameters)
             Z = z_range
