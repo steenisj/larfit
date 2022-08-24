@@ -42,7 +42,7 @@ class LeastSquares:
         y_range = np.arange(y_min, y_max, y_interval)
 
         if dimension==2:
-            parameters, covariance = curve_fit(model, energy, n_yield, p0=init_params) #Storing errors and params from fit
+            parameters, covariance = curve_fit(model, energy, init_n_yield, p0=init_params) #Storing errors and params from fit
             print(parameters)
 
             fit_y = model(x_range, *parameters)
@@ -69,7 +69,6 @@ class LeastSquares:
             ax.set_xlabel(self.data[dataset_label].columns[x_index])
             ax.set_ylabel(self.data[dataset_label].columns[y_index])
             ax.set_zlabel('Yield Density')#self.data[dataset_label].columns[z_index]) 
-            ax.set_xscale('log')
 
             X, Y = np.meshgrid(x_range, y_range)
             z_range = model((X, Y), *parameters)
