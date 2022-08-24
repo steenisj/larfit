@@ -25,12 +25,14 @@ class LeastSquares:
     def __init__(self):
         pass
 
-    def least_squares(self, dataset_label, x_index, y_index, z_index, func_index):
+    def curve_fit_least_squares(self, dataset_label, x_index, y_index, z_index, func_index):
         model, init_params, dimension = ms.selector(self, func_index)
         energy = pd.to_numeric(self.data[dataset_label].iloc[0:,x_index]).to_numpy() 
         Efield = pd.to_numeric(self.data[dataset_label].iloc[0:,y_index]).to_numpy() 
         init_n_yield = pd.to_numeric(self.data[dataset_label].iloc[0:,z_index]).to_numpy() #Before being divided by energy
         labels = self.data[dataset_label].iloc[0:,0].astype(str).values.tolist()
+        yield_errors = pd.to_numeric(self.data[dataset_label].iloc[0:,z_index+1]).to_numpy() 
+        #SOMEWHAT HARD CODED TO PICK ERRORS and only chooses one of the two error columns
 
         #X and Y range for plotting the fit
         x_min = 0.1 #np.min(energy)
@@ -60,7 +62,8 @@ class LeastSquares:
             return parameters, x_range, fit_y
 
         if dimension==3:
-            parameters, covariance = curve_fit(model, (energy, Efield), init_n_yield, p0=init_params) #Storing errors and params from fit
+            #Storing errors and params from fit
+            parameters, covariance = curve_fit(model, (energy, Efield), init_n_yield, p0=init_params, sigma=yield_errors) 
             print(parameters)
             #print(n_yield)
 

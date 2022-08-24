@@ -31,7 +31,7 @@ if dataset_label == 'nr_total':
 
 if __name__ == "__main__":
     #lar.print_data(data)
-    parameters, x_range, y_range = ls.least_squares(data, dataset_label, x_index, y_index, z_index, func_index)
+    parameters, x_range, y_range = ls.curve_fit_least_squares(data, dataset_label, x_index, y_index, z_index, func_index)
     #lar.plot_2d_data(data, dataset_label, x_index, y_index)
     #lar.plot_3d_data(data, dataset_label, x_index, y_index, z_index)
     ls.light_yield_plots(data, func_index, parameters, x_range, y_range)
