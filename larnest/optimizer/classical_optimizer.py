@@ -33,13 +33,13 @@ class LeastSquares:
         labels = self.data[dataset_label].iloc[0:,0].astype(str).values.tolist()
 
         #X and Y range for plotting the fit
-        x_min = np.min(energy)
-        x_max = np.max(energy)
+        x_min = 0.1 #np.min(energy)
+        x_max = 1000 #np.max(energy)
         x_range = np.arange(x_min, x_max, 0.1)
         num_x = (x_max-x_min)/0.1
 
-        y_min = np.min(Efield)
-        y_max = np.max(Efield)
+        y_min = 1 #np.min(Efield)
+        y_max = 2000 #np.max(Efield)
         y_interval = (y_max-y_min)/num_x
         y_range = np.arange(y_min, y_max, y_interval)
 
