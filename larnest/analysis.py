@@ -8,32 +8,62 @@ from models.default_models import DefaultModels as dm
 #Options for plotting the data: THIS IS WHAT THE USER MODIFIES
 file_location = "/mnt/c/Users/jahe0/Desktop/Physics Research/Graduate Research/larnest_data/"
 data = lar(file_location) #Tell it where to find the data file.
-dataset_label = 'nr_light' #For indexing within datasets
+dataset_label = 'alpha_light' #For indexing within datasets
 
+### Neutron Recoil Models ####
 if dataset_label == 'nr_light':
     x_index = 1 #Energy
     y_index = 4 #Efield
-    z_index = 7 #Yield (non-energy-normalized)
+    z_index = 7 #Yield (energy-normalized)
     func_index = 2 #What model do we want to use?
 
 if dataset_label == 'nr_charge':
     x_index = 1 #Energy
     y_index = 4 #Efield
-    z_index = 7 #Yield (non-energy-normalized)
+    z_index = 7 #Yield (energy-normalized)
     func_index = 1 #What model do we want to use?
 
 if dataset_label == 'nr_total':
     x_index = 1 #Energy
-    y_index = 7 #Yield
-    z_index = 7 #Dosn't matter
+    y_index = 4 #Efield
+    z_index = 7 #Yield
     func_index = 3 #What model do we want to use?
+
+### Electron Recoil Models ####
+if dataset_label == 'er_light':
+    x_index = 1 #Energy
+    y_index = 4 #Efield
+    z_index = 7 #Yield (energy-normalized)
+    func_index = 4 #What model do we want to use?
+
+if dataset_label == 'er_charge':
+    x_index = 1 #Energy
+    y_index = 4 #Efield
+    z_index = 7 #Yield (energy-normalized)
+    func_index = 5 #What model do we want to use?
+
+### Alpha Models ####
+if dataset_label == 'alpha_light':
+    x_index = 4 #Efield
+    y_index = 1 #Energy
+    z_index = 7 #Yields
+    func_index = 6 #What model do we want to use?
+
+if dataset_label == 'alpha_charge':
+    x_index = 4 #Efield
+    y_index = 1 #Energy
+    z_index = 7 #Yields
+    func_index = 7 #What model do we want to use?
 
 
 if __name__ == "__main__":
     #lar.print_data(data)
-    parameters, x_range, y_range = ls.curve_fit_least_squares(data, dataset_label, x_index, y_index, z_index, func_index)
+    parameters, x_range, y_or_z_range = ls.curve_fit_least_squares(data, dataset_label, x_index, y_index, z_index, func_index)
+    #ls.NRlight_yield_plots(data, func_index, parameters, x_range, y_range) #Can only be done for 3d data
+
+    #ls.minuit_fit(data, dataset_label, x_index, y_index, z_index, func_index)
     #lar.plot_2d_data(data, dataset_label, x_index, y_index)
     #lar.plot_3d_data(data, dataset_label, x_index, y_index, z_index)
-    ls.light_yield_plots(data, func_index, parameters, x_range, y_range)
+
 
 
