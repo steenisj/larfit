@@ -34,6 +34,7 @@ class LeastSquares:
         labels = self.data[dataset_label].iloc[0:,0].astype(str).values.tolist()
         #SOMEWHAT HARD CODED TO PICK ERRORS and only chooses one of the two error columns
         yield_errors = pd.to_numeric(self.data[dataset_label].iloc[0:,z_index+1]).to_numpy() 
+        x_arr_errors = pd.to_numeric(self.data[dataset_label].iloc[0:,x_index+1]).to_numpy()
 
         #X and Y range for plotting the fit
         x_min = np.min(x_arr)
@@ -68,7 +69,10 @@ class LeastSquares:
                     indices = [j for j, x in enumerate(y_arr) if x == current_energy] 
                     new_Efield_arr = x_arr[indices]
                     new_yield_arr = n_yield[indices]
-                    plt.plot(new_Efield_arr, new_yield_arr, 'o', label=current_energy)
+                    new_yield_errors = yield_errors[indices]
+                    new_x_arr_errors = x_arr_errors[indices]
+                    #plt.plot(new_Efield_arr, new_yield_arr, 'o', label=current_energy)
+                    plt.errorbar(new_Efield_arr, new_yield_arr, label = current_energy, xerr=new_x_arr_errors, yerr=new_yield_errors, fmt='o')
                 plt.plot(x_range, fit_z, '-', label='fit')
                 plt.xlabel(self.data[dataset_label].columns[x_index]) 
                 plt.ylabel(self.data[dataset_label].columns[z_index])
@@ -76,6 +80,31 @@ class LeastSquares:
                 legend_2d = plt.legend()
                 legend_2d.set_title("Energy [keV]", prop = {'size':10})
                 plt.show()
+
+            if dataset_label == 'er_charge':
+                reduced_labels = []
+                for i in labels: #Iterating over the energies
+                    if i in reduced_labels:
+                        continue
+                    elif i not in reduced_labels:
+                        reduced_labels.append(i)
+                for i in np.arange(len(reduced_labels)):
+                    current_label = reduced_labels[i]
+                    indices = [j for j, x in enumerate(labels) if x == current_label] 
+                    new_Efield_arr = x_arr[indices]
+                    new_yield_arr = n_yield[indices]
+                    new_yield_errors = yield_errors[indices]
+                    new_x_arr_errors = x_arr_errors[indices]
+                    #plt.plot(new_Efield_arr, new_yield_arr, 'o', label=current_energy)
+                    plt.errorbar(new_Efield_arr, new_yield_arr, label = current_label, xerr=new_x_arr_errors, yerr=new_yield_errors, fmt='o')
+                plt.plot(x_range, fit_z, '-', label='fit')
+                plt.xlabel(self.data[dataset_label].columns[x_index]) 
+                plt.ylabel(self.data[dataset_label].columns[z_index])
+                plt.title(dataset_label)
+                legend_2d = plt.legend()
+                #legend_2d.set_title("Energy [keV]", prop = {'size':10})
+                plt.show()
+
             else:
                 plt.plot(x_arr, n_yield, 'o', label='data')
                 plt.plot(x_range, fit_z, '-', label='fit')
