@@ -36,15 +36,28 @@ class DefaultModels:
         fieldTerm = F*(G+Efield**H)**(I)
         return A*(B - (B*C + (B/D)*(1-(E*np.log(1+(B/D)*(fieldTerm/J))/((B/D)*fieldTerm)))))
 
+    def GetERElectronYieldsAlpha(Efield, A, B, C, D, E, F, G):
+        density = 1.396 #Density of LAr in g/L
+        return A + B/(C+(Efield/(D+E*np.exp(density/F)))**G)
+
     def GetERElectronYieldsBeta(Efield, A, B, C, D, E, F):
         return A + B*(C+(Efield/D)**E)**F
 
     def GetERElectronYieldsGamma(Efield, A, B, C, D, E, F, G): #fWorkQuantaFunction?
-        WorkQuantafunction = 19.5 #Hard coded!
-        return A*((B/WorkQuantafunction)+C*(D+(E/((Efield/F)**G))))
+        WorkQuantaFunction = 19.5
+        return A*((B/WorkQuantaFunction)+C*(D+(E/((Efield/F)**G))))
 
     def GetERElectronYieldsDokeBirks(Efield, A, B, C, D, E):
         return A+B/(C+(Efield/D)**E)
+
+    def GetERElectronYields(X, p1, p2, p3, p4, p5, delta, let):
+        energy, Efield = X
+        return DefaultModels.alpha*DefaultModels.beta + (DefaultModels.gamma-DefaultModels.alpha*DefaultModels.beta)/(p1+(p2*(energy+0.5)**p3)) + delta/(p5 + DefaultModels.doke_birks*energy**let)
+
+    def GetERTotalYields(energy, WorkQuantaFunction):
+        #WorkQuantaFunction = 19.5
+        #I'm going to make this a parameter and fit it to the data to see if it matches.
+        return (energy*1000)/WorkQuantaFunction
 
     def ERPhotonYields(X):
         pass
@@ -58,7 +71,7 @@ class ModelSelector:
     def selector(self, func_index):
         if func_index == 0: #0
             dimension = 2
-            init_params = [0,0]
+            init_params = [1,1]
             return DefaultModels.Gauss, init_params, dimension
         elif func_index == 1: #1 
             dimension = 3
@@ -81,24 +94,32 @@ class ModelSelector:
             init_params = [1/6200, 64478399, 0.174, 1.21, 0.0285, 0.01, 4.716, 7.72, -0.11, 3]
             return DefaultModels.alphaElectronYields, init_params, dimension
         elif func_index == 6: #6  
-            dimension = 2
-            init_params = [0.778, 25.9, 1.105, 0.4, 4.55, -7.5]
-            #print(func_index)
-            return DefaultModels.GetERElectronYieldsBeta, init_params, dimension
-        elif func_index == 7: #7
-            dimension = 2
-            init_params = [0.6595, 1000, 6.5, 5, -0.5, 1047.4, 0.0185]
-            #print(func_index)
-            return DefaultModels.GetERElectronYieldsGamma, init_params, dimension
-        elif func_index == 8: #8
-            dimension = 2
-            init_params = [1052.3, 14159350000-1652.3, -5, 0.158, 1.84]
-            #print(func_index)
-            return DefaultModels.GetERElectronYieldsDokeBirks, init_params, dimension
-        elif func_index == 9: #9 
+            dimension = 3
+            init_params = [1, 10.3, 13.1, 0.1, 0.7, 15.7, -2.1]
+            return DefaultModels.GetERElectronYields, init_params, dimension        
+        elif func_index == 7: #7 
             dimension = 2
             init_params = []
             return DefaultModels.ERPhotonYields, init_params, dimension
-
+        elif func_index == 8: #8 
+            dimension = 2
+            init_params = [32.998, -552.988, 17.23, -4.7, 0.025, 0.27, 0.242]
+            return DefaultModels.GetERElectronYieldsAlpha, init_params, dimension
+        elif func_index == 9: #9 
+            dimension = 2
+            init_params = [0.778, 25.9, 1.105, 0.4, 4.55, -7.5]
+            return DefaultModels.GetERElectronYieldsBeta, init_params, dimension
+        elif func_index == 10: #10
+            dimension = 2
+            init_params = [0.6595, 1000, 6.5, 5, -0.5, 1047.4, 0.0185]
+            return DefaultModels.GetERElectronYieldsGamma, init_params, dimension
+        elif func_index == 11: #11
+            dimension = 2
+            init_params = [1052.3, 14159350000-1652.3, -5, 0.158, 1.84]
+            return DefaultModels.GetERElectronYieldsDokeBirks, init_params, dimension
+        elif func_index == 12: #12
+            dimension = 2
+            init_params = [None]
+            return DefaultModels.GetERTotalYields, init_params, dimension
         else:
             print("Error with Model Selector. Take a peak at default_models.py!")

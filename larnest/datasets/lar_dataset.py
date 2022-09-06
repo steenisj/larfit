@@ -7,6 +7,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import pandas as pd
 import csv
+from IPython.display import display
 
 class LArDataset:
     def __init__(self,
@@ -54,10 +55,20 @@ class LArDataset:
         )
         if not use_converted:
             for dataset in self.data.keys():
-                self.data[dataset] = self.data[dataset][(self.data[dataset]['converted'] == 0)]
+                converted_indices = [j for j, x in enumerate(self.data[dataset]['converted']) if x == 1]
+                self.data[dataset].drop(converted_indices, axis=0, inplace=True)
+                self.data[dataset] = self.data[dataset].reset_index()
+                del self.data[dataset]['index']
+                #display(self.data[dataset].to_string())
+                #self.data[dataset] = self.data[dataset][(self.data[dataset]['converted'] == 0)]
         if not use_excluded:
             for dataset in self.data.keys():
-                self.data[dataset] = self.data[dataset][(self.data[dataset]['excluded'] == 0)]
+                excluded_indices = [j for j, x in enumerate(self.data[dataset]['excluded']) if x == 1]
+                self.data[dataset].drop(excluded_indices, axis=0, inplace=True)
+                self.data[dataset] = self.data[dataset].reset_index()
+                del self.data[dataset]['index']
+                #display(self.data[dataset].to_string())
+                #self.data[dataset] = self.data[dataset][(self.data[dataset]['excluded'] == 0)]
         # for dataset in self.data.keys():
         #     self.data[dataset]['yield_sl'][(self.data[dataset]['yield_sl'] == 0.0)] = 0.05 * self.data[dataset]['yield'][(self.data[dataset]['yield_sl'] == 0.0)]
         #     self.data[dataset]['yield_sh'][(self.data[dataset]['yield_sh'] == 0.0)] = 0.05 * self.data[dataset]['yield'][(self.data[dataset]['yield_sh'] == 0.0)]
