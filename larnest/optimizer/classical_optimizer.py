@@ -19,6 +19,17 @@ sys.path.insert(0,'models') #Change to the /models folder
 from default_models import DefaultModels as dm
 from default_models import ModelSelector as ms
 
+class MinuitFits:
+    def __init__(self, n_yield, model, x_arr):
+        self.model = model
+        self.n_yield = n_yield
+        self.x_arr = x_arr
+        pass
+    def LSQ(self, A, B, C, D, E, F, G, H, I, J, K, L, M):
+        return np.sum(((np.array(self.n_yield) - self.model(np.array(self.x_arr), A, B, C, D, E, F, G, H, I, J, K, L, M)) ** 2)**0.5)
+    def LSQ_getter(self, func_index, dataset_label, x_index, y_index, z_index):
+        return MinuitFits.LSQ
+
 class LeastSquares:
     '''
     To perform least squares
@@ -26,11 +37,7 @@ class LeastSquares:
     def __init__(self):
         pass
 
-    def minuit_fit(self, dataset_label, x_index, y_index, z_index, func_index):
-        pass
-
-    def curve_fit_least_squares(self, dataset_label, x_index, y_index, z_index, func_index):
-        model, init_params, dimension = ms.selector(self, func_index)
+    def data_initializer(self, dataset_label, x_index, y_index, z_index, func_index): #Gives us the relevant data and errors
         x_arr = pd.to_numeric(self.data[dataset_label][x_index]) 
         y_arr = pd.to_numeric(self.data[dataset_label][y_index]) 
         n_yield = pd.to_numeric(self.data[dataset_label][z_index])
@@ -44,7 +51,9 @@ class LeastSquares:
         yield_errors = pd.to_numeric(self.data[dataset_label][yield_err_index]) 
         x_arr_errors = pd.to_numeric(self.data[dataset_label][x_err_index])
 
-        #X and Y range for plotting the fit
+        return x_arr, y_arr, n_yield, labels, yield_err_index, x_err_index, yield_errors, x_arr_errors
+
+    def range_generator(self, dataset_label, x_arr, y_arr): #Gives us our ranges for the fit plots
         x_min = np.min(x_arr)
         x_max = np.max(x_arr)
         y_min = np.min(y_arr)
@@ -60,6 +69,44 @@ class LeastSquares:
         num_x = (x_max-x_min)/sep
         y_interval = (y_max-y_min)/num_x
         y_range = np.arange(y_min, y_max, y_interval)
+        return x_range, y_range
+
+    def minuit_fit(self, dataset_label, x_index, y_index, z_index, func_index):
+        model, init_params, dimenstion = ms.selector(self, func_index)
+        x_arr, y_arr, n_yield, labels, yield_err_index, x_err_index, yield_errors, x_arr_errors = LeastSquares.data_initializer(self, dataset_label, x_index, y_index, z_index, func_index)
+        x_range, y_range = LeastSquares.range_generator(self, dataset_label, x_arr, y_arr)
+
+        def LSQ(A, B, C, D, E, F, G, H, I, J, K, L, M):
+            return np.sum(((np.array(n_yield) - model(np.array(x_arr), A, B, C, D, E, F, G, H, I, J, K, L, M)) ** 2)**0.5)
+        #model_params = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M']
+
+        #LSQ_model = MinuitFits.LSQ_getter()
+        minuit = Minuit(LSQ, A=init_params[0], B=init_params[1], C=init_params[2], D=init_params[3], 
+                        E=init_params[4], F=init_params[5], G=init_params[6], H=init_params[7], 
+                        I=init_params[8], J=init_params[9], K=init_params[10], L=init_params[11], 
+                        M=init_params[12], pedantic=False)
+        minuit.get_param_states()
+        minuit.migrad()
+        fit_values = minuit.values
+        print(fit_values)
+
+        param_values = []
+        for value in minuit.values:
+            #print(minuit.values[value])
+            param_values.append(minuit.values[value])
+        fit_z = model(x_range, *param_values)
+        plt.plot(x_arr, n_yield, 'o', label='data')
+        plt.plot(x_range, fit_z, '-', label='fit')
+        plt.xlabel(x_index) 
+        plt.ylabel(z_index)
+        plt.title(dataset_label)
+        plt.legend()
+        plt.show()
+
+    def curve_fit_least_squares(self, dataset_label, x_index, y_index, z_index, func_index):
+        model, init_params, dimension = ms.selector(self, func_index)
+        x_arr, y_arr, n_yield, labels, yield_err_index, x_err_index, yield_errors, x_arr_errors = LeastSquares.data_initializer(self, dataset_label, x_index, y_index, z_index, func_index)
+        x_range, y_range = LeastSquares.range_generator(self, dataset_label, x_arr, y_arr)
 
         if dimension==2: #For two dimensional plots
             #print(yield_errors)
@@ -192,8 +239,11 @@ class LeastSquares:
 
             return parameters, x_range, y_range
 
-    def NRlight_yield_plots(self, func_index, parameters, x_range, y_range):
+    def NR_yield_plots(self, func_index, parameters, x_range, y_range, dataset_label):
         #x->x_arr y->y_arr z->yield
+        if dataset_label != 'nr_charge' and dataset_label != 'nr_light':
+            print('Error: Wrong dataset selected. Check NR_yield_plots requirements!')
+            return 0
         model, init_params, dimension = ms.selector(self, func_index)
         y_arr_min = min(y_range)
         y_arr_max = max(y_range)
