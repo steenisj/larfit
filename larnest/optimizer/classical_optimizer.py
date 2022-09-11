@@ -87,7 +87,7 @@ class LeastSquares:
                 legend_2d.set_title("Energy [keV]", prop = {'size':10})
                 plt.show()
 
-            elif dataset_label == 'er_charge': ##Currently Defunt##
+            elif dataset_label == 'er_charge':
                 reduced_labels = []
                 for i in labels: #Iterating over the energies
                     if i in reduced_labels:
@@ -156,10 +156,10 @@ class LeastSquares:
         x_range, y_range = LeastSquares.range_generator(self, dataset_label, x_arr, y_arr)
 
         if dimension == 2:
-            def LSQ(A, B, C, D, E, F, G, H, I, J, K, L, M): #For 2d
-                return np.sum(((np.array(n_yield) - model(np.array(x_arr), A, B, C, D, E, F, G, H, I, J, K, L, M)) ** 2)**0.5)
+            def LSQ_alpha_light(A, B, C, D, E, F, G, H, I, J, K, L, M): #For 2d
+                return np.sum((np.array(n_yield) - model(np.array(x_arr), A, B, C, D, E, F, G, H, I, J, K, L, M)) ** 2)
             c = cost.LeastSquares(x_arr, n_yield, yield_errors, model) #Change from least squares
-            minuit = Minuit(c, A=init_params[0], B=init_params[1], C=init_params[2], D=init_params[3], 
+            minuit = Minuit(LSQ_alpha_light, A=init_params[0], B=init_params[1], C=init_params[2], D=init_params[3], 
                             E=init_params[4], F=init_params[5], G=init_params[6], H=init_params[7], 
                             I=init_params[8], J=init_params[9], K=init_params[10], L=init_params[11], 
                             M=init_params[12], pedantic=False)        
@@ -181,10 +181,10 @@ class LeastSquares:
             LeastSquares.fit_plotter(self, dimension, plot_arrays, index_arr, dataset_label, labels)
 
         if dimension == 3:
-            def LSQ(gamma, delta, epsilon, zeta, eta):
-                return np.sum(((np.array(n_yield) - model((np.array(x_arr), np.array(y_arr)), gamma, delta, epsilon, zeta, eta)) ** 2)**0.5)
+            def LSQ_nr_charge(gamma, delta, epsilon, zeta, eta):
+                return np.sum((np.array(n_yield) - model((np.array(x_arr), np.array(y_arr)), gamma, delta, epsilon, zeta, eta)) ** 2)
 
-            minuit = Minuit(LSQ, gamma=init_params[0], delta=init_params[1], epsilon=init_params[2], zeta=init_params[3], eta=init_params[4], pedantic=False)
+            minuit = Minuit(LSQ_nr_charge, gamma=init_params[0], delta=init_params[1], epsilon=init_params[2], zeta=init_params[3], eta=init_params[4], pedantic=False)
             minuit.migrad()
 
             param_values = []
@@ -227,9 +227,9 @@ class LeastSquares:
 
         if dimension==3: #For 3 dimensional plots
             #Storing errors and params from fit
-            x_y_points = (x_arr, y_arr) #Clean up and rename!
-            z_points = n_yield
-            new_labels = labels
+            #x_y_points = (x_arr, y_arr) #Clean up and rename!
+            #z_points = n_yield
+            #new_labels = labels
 
             if dataset_label == 'er_charge':
                 alpha, beta, gamma, doke_birks, alpha_params, beta_params, gamma_params, doke_birks_params = LeastSquares.ERChargeParamPuller(self, y_arr, n_yield, yield_errors)
@@ -239,11 +239,11 @@ class LeastSquares:
                 inst.beta = beta
                 inst.gamma = gamma
                 inst.doke_birks = doke_birks
-                parameters, covariance = curve_fit(inst.GetERElectronYields, x_y_points, z_points, sigma=yield_errors, p0=init_params)
+                parameters, covariance = curve_fit(inst.GetERElectronYields, (x_arr, y_arr), n_yield, sigma=yield_errors, p0=init_params)
                 print('Parameters: ', parameters)
 
             else:
-                parameters, covariance = curve_fit(model, x_y_points, z_points, sigma=yield_errors, p0=init_params)
+                parameters, covariance = curve_fit(model, (x_arr, y_arr), n_yield, sigma=yield_errors, p0=init_params)
                 print('Parameters: ', parameters)
 
             X, Y = np.meshgrid(x_range, y_range)
