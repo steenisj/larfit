@@ -62,7 +62,11 @@ class DefaultModels:
     def ERPhotonYields(X):
         pass
 
+class LeastSquaresModels:
+    def __init__(self):
+        pass
 
+    def 
 
 class ModelSelector:
     def __init__(self):
