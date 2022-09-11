@@ -2,33 +2,21 @@
 This script will allow us to perform least squares fitting on data.
 '''
 
-#In the Z axis, we should be plotting yield/energy which we ALSO call yield (nick says 'yield density') <N> = Y*E
-
 from dataclasses import dataclass
 from turtle import color
+from zlib import Z_BEST_COMPRESSION
 import numpy as np
 from scipy.optimize import curve_fit
 import pandas as pd
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.cm as cm
-from iminuit import Minuit
+from iminuit import cost, Minuit
 
 import sys
 sys.path.insert(0,'models') #Change to the /models folder
 from default_models import DefaultModels as dm
 from default_models import ModelSelector as ms
-
-class MinuitFits:
-    def __init__(self, n_yield, model, x_arr):
-        self.model = model
-        self.n_yield = n_yield
-        self.x_arr = x_arr
-        pass
-    def LSQ(self, A, B, C, D, E, F, G, H, I, J, K, L, M):
-        return np.sum(((np.array(self.n_yield) - self.model(np.array(self.x_arr), A, B, C, D, E, F, G, H, I, J, K, L, M)) ** 2)**0.5)
-    def LSQ_getter(self, func_index, dataset_label, x_index, y_index, z_index):
-        return MinuitFits.LSQ
 
 class LeastSquares:
     '''
@@ -71,55 +59,11 @@ class LeastSquares:
         y_range = np.arange(y_min, y_max, y_interval)
         return x_range, y_range
 
-    def minuit_fit(self, dataset_label, x_index, y_index, z_index, func_index):
-        model, init_params, dimenstion = ms.selector(self, func_index)
-        x_arr, y_arr, n_yield, labels, yield_err_index, x_err_index, yield_errors, x_arr_errors = LeastSquares.data_initializer(self, dataset_label, x_index, y_index, z_index, func_index)
-        x_range, y_range = LeastSquares.range_generator(self, dataset_label, x_arr, y_arr)
-
-        def LSQ(A, B, C, D, E, F, G, H, I, J, K, L, M):
-            return np.sum(((np.array(n_yield) - model(np.array(x_arr), A, B, C, D, E, F, G, H, I, J, K, L, M)) ** 2)**0.5)
-        #model_params = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M']
-
-        #LSQ_model = MinuitFits.LSQ_getter()
-        minuit = Minuit(LSQ, A=init_params[0], B=init_params[1], C=init_params[2], D=init_params[3], 
-                        E=init_params[4], F=init_params[5], G=init_params[6], H=init_params[7], 
-                        I=init_params[8], J=init_params[9], K=init_params[10], L=init_params[11], 
-                        M=init_params[12], pedantic=False)
-        minuit.get_param_states()
-        minuit.migrad()
-        fit_values = minuit.values
-        print(fit_values)
-
-        param_values = []
-        for value in minuit.values:
-            #print(minuit.values[value])
-            param_values.append(minuit.values[value])
-        fit_z = model(x_range, *param_values)
-        plt.plot(x_arr, n_yield, 'o', label='data')
-        plt.plot(x_range, fit_z, '-', label='fit')
-        plt.xlabel(x_index) 
-        plt.ylabel(z_index)
-        plt.title(dataset_label)
-        plt.legend()
-        plt.show()
-
-    def curve_fit_least_squares(self, dataset_label, x_index, y_index, z_index, func_index):
-        model, init_params, dimension = ms.selector(self, func_index)
-        x_arr, y_arr, n_yield, labels, yield_err_index, x_err_index, yield_errors, x_arr_errors = LeastSquares.data_initializer(self, dataset_label, x_index, y_index, z_index, func_index)
-        x_range, y_range = LeastSquares.range_generator(self, dataset_label, x_arr, y_arr)
-
-        if dimension==2: #For two dimensional plots
-            #print(yield_errors)
-            if dataset_label == 'alpha_charge':
-                parameters, covariance = curve_fit(model, x_arr, n_yield, p0=init_params, maxfev=8000) #Storing errors and params from fit
-            elif dataset_label == 'er_total':
-                parameters, covariance = curve_fit(model, x_arr, n_yield, p0=init_params, sigma=yield_errors, maxfev=8000)
-            else:
-                parameters, covariance = curve_fit(model, x_arr, n_yield, p0=init_params, sigma=yield_errors, maxfev=8000) #Storing errors and params from fit
-            print('Parameters: ', parameters)
-
-            fit_z = model(x_range, *parameters)
-            #print(fit_z)
+    def fit_plotter(self, dimension, plot_arrays, index_arr, dataset_label, labels):
+        if dimension == 2:
+            x_arr, y_arr, n_yield, x_range, y_range, fit_z, yield_errors, x_arr_errors = plot_arrays
+            x_index, y_index, z_index = index_arr
+        
             if dataset_label == 'alpha_light' or dataset_label == 'alpha_charge':
                 reduced_energies = []
                 for i in y_arr: #Iterating over the energies
@@ -134,7 +78,6 @@ class LeastSquares:
                     new_yield_arr = n_yield[indices]
                     new_yield_errors = yield_errors[indices]
                     new_x_arr_errors = x_arr_errors[indices]
-                    #plt.plot(new_Efield_arr, new_yield_arr, 'o', label=current_energy)
                     plt.errorbar(new_Efield_arr, new_yield_arr, label = current_energy, xerr=new_x_arr_errors, yerr=new_yield_errors, fmt='o')
                 plt.plot(x_range, fit_z, '-', label='fit')
                 plt.xlabel(x_index) 
@@ -177,6 +120,109 @@ class LeastSquares:
                 plt.legend()
                 plt.show()
 
+        if dimension == 3:
+            x_arr, y_arr, n_yield, X, Y, Z_fit = plot_arrays
+            x_index, y_index, z_index = index_arr
+
+            fig = plt.figure()
+            ax = fig.gca(projection='3d')
+            ax.set_title(dataset_label)
+            ax.set_xlabel(x_index)
+            ax.set_ylabel(y_index)
+            ax.set_zlabel(z_index)
+
+            reduced_labels = []
+            for i in labels:
+                if i in reduced_labels:
+                    continue
+                elif i not in reduced_labels:
+                    reduced_labels.append(i)
+            for i in np.arange(len(reduced_labels)):
+                current_label = reduced_labels[i]
+                indices = [j for j, x in enumerate(labels) if x == current_label] 
+                arr1 = x_arr[indices]
+                arr2 = y_arr[indices]
+                arr3 = n_yield[indices]
+                ax.scatter(arr1, arr2, arr3, label=current_label)
+
+            ax.plot_surface(X, Y, Z_fit, color='orange')
+            ax.legend()
+            fig.tight_layout()
+            plt.show()
+
+    def minuit_fit(self, dataset_label, x_index, y_index, z_index, func_index):
+        model, init_params, dimension = ms.selector(self, func_index)
+        x_arr, y_arr, n_yield, labels, yield_err_index, x_err_index, yield_errors, x_arr_errors = LeastSquares.data_initializer(self, dataset_label, x_index, y_index, z_index, func_index)
+        x_range, y_range = LeastSquares.range_generator(self, dataset_label, x_arr, y_arr)
+
+        if dimension == 2:
+            def LSQ(A, B, C, D, E, F, G, H, I, J, K, L, M): #For 2d
+                return np.sum(((np.array(n_yield) - model(np.array(x_arr), A, B, C, D, E, F, G, H, I, J, K, L, M)) ** 2)**0.5)
+            c = cost.LeastSquares(x_arr, n_yield, yield_errors, model) #Change from least squares
+            minuit = Minuit(c, A=init_params[0], B=init_params[1], C=init_params[2], D=init_params[3], 
+                            E=init_params[4], F=init_params[5], G=init_params[6], H=init_params[7], 
+                            I=init_params[8], J=init_params[9], K=init_params[10], L=init_params[11], 
+                            M=init_params[12], pedantic=False)        
+        
+            minuit.get_param_states()
+            minuit.migrad()
+            fit_values = minuit.values
+            print(fit_values)
+
+            param_values = []
+            for value in minuit.values:
+                #print(minuit.values[value])
+                param_values.append(minuit.values[value])        
+
+            fit_z = model(x_range, *param_values) #2d fit stuff
+
+            plot_arrays = x_arr, y_arr, n_yield, x_range, y_range, fit_z, yield_errors, x_arr_errors
+            index_arr = x_index, y_index, z_index
+            LeastSquares.fit_plotter(self, dimension, plot_arrays, index_arr, dataset_label, labels)
+
+        if dimension == 3:
+            def LSQ(gamma, delta, epsilon, zeta, eta):
+                return np.sum(((np.array(n_yield) - model((np.array(x_arr), np.array(y_arr)), gamma, delta, epsilon, zeta, eta)) ** 2)**0.5)
+
+            minuit = Minuit(LSQ, gamma=init_params[0], delta=init_params[1], epsilon=init_params[2], zeta=init_params[3], eta=init_params[4], pedantic=False)
+            minuit.migrad()
+
+            param_values = []
+            for value in minuit.values:
+                #print(minuit.values[value])
+                param_values.append(minuit.values[value])  
+
+            print(param_values)      
+
+            X, Y = np.meshgrid(x_range, y_range)
+            Z_fit = model((X,Y), *param_values)
+
+            plot_arrays = x_arr, y_arr, n_yield, X, Y, Z_fit
+            index_arr = x_index, y_index, z_index
+            LeastSquares.fit_plotter(self, dimension, plot_arrays, index_arr, dataset_label, labels)
+
+
+    def curve_fit_least_squares(self, dataset_label, x_index, y_index, z_index, func_index):
+        model, init_params, dimension = ms.selector(self, func_index)
+        x_arr, y_arr, n_yield, labels, yield_err_index, x_err_index, yield_errors, x_arr_errors = LeastSquares.data_initializer(self, dataset_label, x_index, y_index, z_index, func_index)
+        x_range, y_range = LeastSquares.range_generator(self, dataset_label, x_arr, y_arr)
+
+        if dimension==2: #For two dimensional plots
+            #print(yield_errors)
+            if dataset_label == 'alpha_charge':
+                parameters, covariance = curve_fit(model, x_arr, n_yield, p0=init_params, maxfev=8000) #Storing errors and params from fit
+            elif dataset_label == 'er_total':
+                parameters, covariance = curve_fit(model, x_arr, n_yield, p0=init_params, sigma=yield_errors, maxfev=8000)
+            else:
+                parameters, covariance = curve_fit(model, x_arr, n_yield, p0=init_params, sigma=yield_errors, maxfev=8000) #Storing errors and params from fit
+            print('Parameters: ', parameters)
+
+            fit_z = model(x_range, *parameters)
+            #print(fit_z)
+            plot_arrays = x_arr, y_arr, n_yield, x_range, y_range, fit_z, yield_errors, x_arr_errors
+            index_arr = x_index, y_index, z_index
+            LeastSquares.fit_plotter(self, dimension, plot_arrays, index_arr, dataset_label, labels)
+
             return parameters, x_range, fit_z
 
         if dimension==3: #For 3 dimensional plots
@@ -200,27 +246,6 @@ class LeastSquares:
                 parameters, covariance = curve_fit(model, x_y_points, z_points, sigma=yield_errors, p0=init_params)
                 print('Parameters: ', parameters)
 
-            fig = plt.figure()
-            ax = fig.gca(projection='3d')
-            ax.set_title(dataset_label)
-            ax.set_xlabel(x_index)
-            ax.set_ylabel(y_index)
-            ax.set_zlabel(z_index)
-
-            reduced_labels = []
-            for i in new_labels:
-                if i in reduced_labels:
-                    continue
-                elif i not in reduced_labels:
-                    reduced_labels.append(i)
-            for i in np.arange(len(reduced_labels)):
-                current_label = reduced_labels[i]
-                indices = [j for j, x in enumerate(new_labels) if x == current_label] 
-                arr1 = x_y_points[0][indices]
-                arr2 = x_y_points[1][indices]
-                arr3 = z_points[indices]
-                ax.scatter(arr1, arr2, arr3, label=current_label)
-
             X, Y = np.meshgrid(x_range, y_range)
             if dataset_label == 'er_charge':
                 new_alpha, new_beta, new_gamma, new_DB = LeastSquares.ERChargeParamGetter(self, alpha_params, beta_params, gamma_params, doke_birks_params, Y)
@@ -231,11 +256,12 @@ class LeastSquares:
                 z_range = inst.GetERElectronYields((X, Y), *parameters)
             else:
                 z_range = model((X, Y), *parameters)
-            Z = z_range
-            ax.plot_surface(X, Y, Z, color='orange')
-            ax.legend()
-            fig.tight_layout()
-            plt.show()
+            #print(len((X,Y)))
+            Z_fit = z_range
+
+            plot_arrays = x_arr, y_arr, n_yield, X, Y, Z_fit
+            index_arr = x_index, y_index, z_index
+            LeastSquares.fit_plotter(self, dimension, plot_arrays, index_arr, dataset_label, labels)
 
             return parameters, x_range, y_range
 

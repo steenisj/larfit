@@ -2,18 +2,14 @@ import numpy as np
 import scipy as sci
 import pandas as pd
 from datasets.lar_dataset import LArDataset as lar
-from optimizer.classical_optimizer import MinuitFits
-#from larnest.optimizer.classical_optimizer import MinuitFits
+#from optimizer.classical_optimizer import MinuitFits
 from optimizer.classical_optimizer import LeastSquares as ls
-from optimizer.classical_optimizer import MinuitFits as mf
-#from optimizer.classical_optimizer import FitRunner as fr
 from models.default_models import DefaultModels as dm
 
 #Options for plotting the data: THIS IS WHAT THE USER MODIFIES
 file_location = "/mnt/c/Users/jahe0/Desktop/Physics Research/Graduate Research/larnest_data/"
 data = lar(file_location) #Tell it where to find the data file.
-dataset_label = 'nr_total' #For indexing within datasets
-fit_type = 'minuit'
+dataset_label = 'alpha_light' #For indexing within datasets
 
 ### Neutron Recoil Models ####
 if dataset_label == 'nr_charge':
@@ -72,18 +68,7 @@ else:
 
 if __name__ == "__main__":
     #lar.print_data(data)
-    parameters, x_range, y_or_z_range = ls.curve_fit_least_squares(data, dataset_label, x_index, y_index, z_index, func_index)
-    ls.NR_yield_plots(data, func_index, parameters, x_range, y_or_z_range, dataset_label) #Can only be done for 3d data
+    #parameters, x_range, y_or_z_range = ls.curve_fit_least_squares(data, dataset_label, x_index, y_index, z_index, func_index)
+    #ls.NR_yield_plots(data, func_index, parameters, x_range, y_or_z_range, dataset_label) #Can only be done for 3d data
 
-    #mf.minuit_getter(func_index, dataset_label, x_index, y_index, z_index)
-
-    #ls.minuit_fit(data, dataset_label, x_index, y_index, z_index, func_index)
-
-    #lar.plot_2d_data(data, dataset_label, x_index, y_index)
-    #lar.plot_3d_data(data, dataset_label, x_index, y_index, z_index)
-
-    #chosen_class = fr()
-    #fit_result = fr.fitter_selector(chosen_class, data, fit_type, dataset_label, x_index, y_index, z_index, func_index)
-
-
-
+    ls.minuit_fit(data, dataset_label, x_index, y_index, z_index, func_index)
