@@ -24,7 +24,7 @@ class LeastSquares:
     '''
     def __init__(self):
         pass
-
+#-----------------------------------------------------------------------------#
     def data_initializer(self, dataset_label, x_index, y_index, z_index, func_index): #Gives us the relevant data and errors
         x_arr = pd.to_numeric(self.data[dataset_label][x_index]) 
         y_arr = pd.to_numeric(self.data[dataset_label][y_index]) 
@@ -40,7 +40,7 @@ class LeastSquares:
         x_arr_errors = pd.to_numeric(self.data[dataset_label][x_err_index])
 
         return x_arr, y_arr, n_yield, labels, yield_err_index, x_err_index, yield_errors, x_arr_errors
-
+#-----------------------------------------------------------------------------#
     def range_generator(self, dataset_label, x_arr, y_arr): #Gives us our ranges for the fit plots
         x_min = np.min(x_arr)
         x_max = np.max(x_arr)
@@ -58,8 +58,8 @@ class LeastSquares:
         y_interval = (y_max-y_min)/num_x
         y_range = np.arange(y_min, y_max, y_interval)
         return x_range, y_range
-
-    def fit_plotter(self, dimension, plot_arrays, index_arr, dataset_label, labels):
+#-----------------------------------------------------------------------------#
+    def fit_plotter(self, dimension, plot_arrays, index_arr, dataset_label, labels): #Plotting the fits and the data
         if dimension == 2:
             x_arr, y_arr, n_yield, x_range, y_range, fit_z, yield_errors, x_arr_errors = plot_arrays
             x_index, y_index, z_index = index_arr
@@ -149,20 +149,29 @@ class LeastSquares:
             ax.legend()
             fig.tight_layout()
             plt.show()
-
-    def minuit_fit(self, dataset_label, x_index, y_index, z_index, func_index):
-        model, init_params, dimension = ms.selector(self, func_index)
+#-----------------------------------------------------------------------------#
+    def dict_maker(self, param_list, init_params): #To make two dictionaries: One for init_params, and the other for the list of parameter names
+        #For the initial values:
+        dict = {}
+        keys = param_list
+        values = init_params
+        for i in np.arange(len(keys)):
+            dict[keys[i]] = values[i]
+        #print(dict)
+        return dict
+#-----------------------------------------------------------------------------#
+    def minuit_fit(self, dataset_label, x_index, y_index, z_index, func_index): #Fitting the data with minuit
+        model, init_params, dimension, param_list = ms.selector(self, func_index)
         x_arr, y_arr, n_yield, labels, yield_err_index, x_err_index, yield_errors, x_arr_errors = LeastSquares.data_initializer(self, dataset_label, x_index, y_index, z_index, func_index)
         x_range, y_range = LeastSquares.range_generator(self, dataset_label, x_arr, y_arr)
 
+        init_dict = LeastSquares.dict_maker(self, param_list, init_params)
+
         if dimension == 2:
-            def LSQ_alpha_light(A, B, C, D, E, F, G, H, I, J, K, L, M): #For 2d
-                return np.sum((np.array(n_yield) - model(np.array(x_arr), A, B, C, D, E, F, G, H, I, J, K, L, M)) ** 2)
-            c = cost.LeastSquares(x_arr, n_yield, yield_errors, model) #Change from least squares
-            minuit = Minuit(LSQ_alpha_light, A=init_params[0], B=init_params[1], C=init_params[2], D=init_params[3], 
-                            E=init_params[4], F=init_params[5], G=init_params[6], H=init_params[7], 
-                            I=init_params[8], J=init_params[9], K=init_params[10], L=init_params[11], 
-                            M=init_params[12], pedantic=False)        
+            #def LSQ_alpha_light(A, B, C, D, E, F, G, H, I, J, K, L, M): #For 2d
+            #    return np.sum((np.array(n_yield) - model(np.array(x_arr), A, B, C, D, E, F, G, H, I, J, K, L, M)) ** 2)
+            c = cost.LeastSquares(x_arr, n_yield, 0, model) #Change from least squares // '''yield_errors'''
+            minuit = Minuit(c, **init_dict, pedantic=False)        
         
             minuit.get_param_states()
             minuit.migrad()
@@ -184,7 +193,16 @@ class LeastSquares:
             def LSQ_nr_charge(gamma, delta, epsilon, zeta, eta):
                 return np.sum((np.array(n_yield) - model((np.array(x_arr), np.array(y_arr)), gamma, delta, epsilon, zeta, eta)) ** 2)
 
-            minuit = Minuit(LSQ_nr_charge, gamma=init_params[0], delta=init_params[1], epsilon=init_params[2], zeta=init_params[3], eta=init_params[4], pedantic=False)
+            '''X=(x_arr,y_arr)
+            def LSQ_nr_charge(X, *params_list):
+                return np.sum((np.array(n_yield) - model(X, *params_list)) ** 2)
+
+            minuit_test = Minuit.from_array_func(LSQ_nr_charge, init_params)
+            minuit_test.migrad()'''
+
+            #c = cost.LeastSquares((x_arr,y_arr), n_yield, 0, model)
+
+            minuit = Minuit(LSQ_nr_charge, **init_dict, pedantic=False)
             minuit.migrad()
 
             param_values = []
@@ -200,10 +218,9 @@ class LeastSquares:
             plot_arrays = x_arr, y_arr, n_yield, X, Y, Z_fit
             index_arr = x_index, y_index, z_index
             LeastSquares.fit_plotter(self, dimension, plot_arrays, index_arr, dataset_label, labels)
-
-
-    def curve_fit_least_squares(self, dataset_label, x_index, y_index, z_index, func_index):
-        model, init_params, dimension = ms.selector(self, func_index)
+#-----------------------------------------------------------------------------#
+    def curve_fit_least_squares(self, dataset_label, x_index, y_index, z_index, func_index): #Fitting the data with curve_fit()
+        model, init_params, dimension, param_list = ms.selector(self, func_index)
         x_arr, y_arr, n_yield, labels, yield_err_index, x_err_index, yield_errors, x_arr_errors = LeastSquares.data_initializer(self, dataset_label, x_index, y_index, z_index, func_index)
         x_range, y_range = LeastSquares.range_generator(self, dataset_label, x_arr, y_arr)
 
@@ -264,13 +281,13 @@ class LeastSquares:
             LeastSquares.fit_plotter(self, dimension, plot_arrays, index_arr, dataset_label, labels)
 
             return parameters, x_range, y_range
-
+#-----------------------------------------------------------------------------#
     def NR_yield_plots(self, func_index, parameters, x_range, y_range, dataset_label):
         #x->x_arr y->y_arr z->yield
         if dataset_label != 'nr_charge' and dataset_label != 'nr_light':
             print('Error: Wrong dataset selected. Check NR_yield_plots requirements!')
             return 0
-        model, init_params, dimension = ms.selector(self, func_index)
+        model, init_params, dimension, param_list = ms.selector(self, func_index)
         y_arr_min = min(y_range)
         y_arr_max = max(y_range)
         E_interval = (y_arr_max - y_arr_min)/10
@@ -286,30 +303,30 @@ class LeastSquares:
         plt.title('E v. Yield Density')
         plt.xscale('log')
         plt.show()
-
+#-----------------------------------------------------------------------------#
     def ERChargeParamPuller(self, y_arr, n_yield, yield_errors): #To reconfigure the er_charge params for display purposes only
-        alpha_model, alpha_init_params, alpha_dim = ms.selector(self, 8)
+        alpha_model, alpha_init_params, alpha_dim, alpha_param_list = ms.selector(self, 8)
         alpha_params, a_cov = curve_fit(alpha_model, y_arr, n_yield, sigma=yield_errors, p0=alpha_init_params)
         #print(alpha_params)
         alpha = dm.GetERElectronYieldsAlpha(y_arr, *alpha_params)
         #print(alpha)
 
-        beta_model, beta_init_params, beta_dim = ms.selector(self, 9)
+        beta_model, beta_init_params, beta_dim, beta_param_list = ms.selector(self, 9)
         beta_params, b_cov = curve_fit(beta_model, y_arr, n_yield, sigma=yield_errors, p0=beta_init_params)
         beta = dm.GetERElectronYieldsBeta(y_arr, *beta_params)
        #print(beta)
 
-        gamma_model, gamma_init_params, gamma_dim = ms. selector(self, 10)
+        gamma_model, gamma_init_params, gamma_dim, gamma_param_list = ms. selector(self, 10)
         gamma_params, g_cov = curve_fit(gamma_model, y_arr, n_yield, sigma=yield_errors, p0=gamma_init_params)
         gamma = dm.GetERElectronYieldsGamma(y_arr, *gamma_params)
         #print(gamma)
 
-        DB_model, DB_init_params, DB_dim = ms.selector(self, 11)
+        DB_model, DB_init_params, DB_dim, DB_param_list = ms.selector(self, 11)
         doke_birks_params, db_cov = curve_fit(DB_model, y_arr, n_yield, sigma=yield_errors, p0=DB_init_params) 
         doke_birks = dm.GetERElectronYieldsDokeBirks(y_arr, *doke_birks_params)
         #print(doke_birks)
         return alpha, beta, gamma, doke_birks, alpha_params, beta_params, gamma_params, doke_birks_params
-
+#-----------------------------------------------------------------------------#
     def ERChargeParamGetter(self, alpha_params, beta_params, gamma_params, doke_birks_params, Y): #For obtaining the models using the params generated from ERChargeParamPuller (gives a new array of the same length as the plots)
         alpha = dm.GetERElectronYieldsAlpha(Y, *alpha_params)
         beta = dm.GetERElectronYieldsBeta(Y, *beta_params)
@@ -317,4 +334,4 @@ class LeastSquares:
         doke_birks = dm.GetERElectronYieldsDokeBirks(Y, *doke_birks_params)
         #print(doke_birks)
         return alpha, beta, gamma, doke_birks
-
+#-----------------------------------------------------------------------------#
