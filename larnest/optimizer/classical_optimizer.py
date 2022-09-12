@@ -168,20 +168,29 @@ class LeastSquares:
         init_dict = LeastSquares.dict_maker(self, param_list, init_params)
 
         if dimension == 2:
-            #def LSQ_alpha_light(A, B, C, D, E, F, G, H, I, J, K, L, M): #For 2d
-            #    return np.sum((np.array(n_yield) - model(np.array(x_arr), A, B, C, D, E, F, G, H, I, J, K, L, M)) ** 2)
-            c = cost.LeastSquares(x_arr, n_yield, 0, model) #Change from least squares // '''yield_errors'''
-            minuit = Minuit(c, **init_dict, pedantic=False)        
+            if dataset_label == 'alpha_light':
+                def LSQ(A, B, C, D, E, F, G, H, I, J, K, L, M):
+                    return np.sum((np.array(n_yield) - model(np.array(x_arr), A, B, C, D, E, F, G, H, I, J, K, L, M)) ** 2)
+
+            if dataset_label == 'alpha_charge':
+                def LSQ(A, B, C, D, E, F, G, H, I, J): 
+                    return np.sum((np.array(n_yield) - model(np.array(x_arr), A, B, C, D, E, F, G, H, I, J)) ** 2)
+
+            if dataset_label == 'nr_total':
+                def LSQ(alpha, beta): 
+                    return np.sum((np.array(n_yield) - model(np.array(x_arr), alpha, beta)) ** 2)
+            #c = cost.LeastSquares(x_arr, n_yield, 0, model) #Change from least squares // '''yield_errors'''
+            minuit = Minuit(LSQ, **init_dict, pedantic=False)        
         
             minuit.get_param_states()
             minuit.migrad()
             fit_values = minuit.values
-            print(fit_values)
 
             param_values = []
             for value in minuit.values:
                 #print(minuit.values[value])
-                param_values.append(minuit.values[value])        
+                param_values.append(minuit.values[value])
+            print('Parameters: ', param_values)        
 
             fit_z = model(x_range, *param_values) #2d fit stuff
 
@@ -190,8 +199,13 @@ class LeastSquares:
             LeastSquares.fit_plotter(self, dimension, plot_arrays, index_arr, dataset_label, labels)
 
         if dimension == 3:
-            def LSQ_nr_charge(gamma, delta, epsilon, zeta, eta):
-                return np.sum((np.array(n_yield) - model((np.array(x_arr), np.array(y_arr)), gamma, delta, epsilon, zeta, eta)) ** 2)
+            if dataset_label == 'nr_charge':
+                def LSQ(gamma, delta, epsilon, zeta, eta):
+                    return np.sum((np.array(n_yield) - model((np.array(x_arr), np.array(y_arr)), gamma, delta, epsilon, zeta, eta)) ** 2)
+
+            elif dataset_label == 'nr_light':
+                def LSQ(alpha, beta, gamma, delta, epsilon, zeta, eta):
+                    return np.sum((np.array(n_yield) - model((np.array(x_arr), np.array(y_arr)), alpha, beta, gamma, delta, epsilon, zeta, eta)) ** 2)
 
             '''X=(x_arr,y_arr)
             def LSQ_nr_charge(X, *params_list):
@@ -202,7 +216,7 @@ class LeastSquares:
 
             #c = cost.LeastSquares((x_arr,y_arr), n_yield, 0, model)
 
-            minuit = Minuit(LSQ_nr_charge, **init_dict, pedantic=False)
+            minuit = Minuit(LSQ, **init_dict, pedantic=False)
             minuit.migrad()
 
             param_values = []
@@ -210,7 +224,7 @@ class LeastSquares:
                 #print(minuit.values[value])
                 param_values.append(minuit.values[value])  
 
-            print(param_values)      
+            print('Parameters: ', param_values)      
 
             X, Y = np.meshgrid(x_range, y_range)
             Z_fit = model((X,Y), *param_values)

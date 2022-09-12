@@ -9,6 +9,67 @@ import pandas as pd
 import csv
 from IPython.display import display
 
+class DatasetInfo:
+    def __init__(self, dataset_label):
+        self.dataset_label = dataset_label
+
+    def dataset_info(self, dataset_label):
+        ### Neutron Recoil Models ####
+        if dataset_label == 'nr_charge':
+            x_index = 'energy' #Energy
+            y_index = 'field' #Efield
+            z_index = 'yield' #Yield (energy-normalized)
+            func_index = 1 #What model do we want to use?
+
+        elif dataset_label == 'nr_light':
+            x_index = 'energy' #Energy
+            y_index = 'field' #Efield
+            z_index = 'yield' #Yield (energy-normalized)
+            func_index = 2 #What model do we want to use?
+
+        elif dataset_label == 'nr_total':
+            x_index = 'energy' #Energy
+            y_index = 'field' #Efield
+            z_index = 'yield' #Yield
+            func_index = 3 #What model do we want to use?
+
+        ### Alpha Models ####
+        elif dataset_label == 'alpha_light':
+            x_index = 'field' #Efield
+            y_index = 'energy' #Energy
+            z_index = 'yield' #Yields
+            func_index = 4 #What model do we want to use?
+
+        elif dataset_label == 'alpha_charge':
+            x_index = 'field' #Efield
+            y_index = 'energy' #Energy
+            z_index = 'yield' #Yields
+            func_index = 5 #What model do we want to use?
+
+        ### Electron Recoil Models ####
+        elif dataset_label == 'er_charge': #There is an issue with the curve_fit() for this!
+            x_index = 'energy' #Energy
+            y_index = 'field' #Efield
+            z_index = 'yield' #Yield (energy-normalized)
+            func_index = 6 #What model do we want to use?
+
+        elif dataset_label == 'er_light': ###Not used yet!
+            x_index = 'energy' #Energy
+            y_index = 'field' #Efield
+            z_index = 'yield' #Yield (energy-normalized)
+            func_index = 7 #What model do we want to use?
+
+        elif dataset_label == 'er_total': #no data yet!
+            x_index = 'energy' #Energy
+            y_index = 'field' #Efield
+            z_index = 'yield' #Yield (energy-normalized)
+            func_index = 12 #What model do we want to use?
+
+        else:
+            print("ERROR: Wrong type input. Take a peak at analysis.py")
+
+        return x_index, y_index, z_index, func_index
+
 class LArDataset:
     def __init__(self,
         data_dir:   str,
