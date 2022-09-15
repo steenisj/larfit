@@ -8,8 +8,8 @@ from optimizer.classical_optimizer import LeastSquares as ls
 from models.default_models import DefaultModels as dm
 
 #Options for plotting the data:
-dataset_label = 'nr_total' #For indexing within datasets; THIS IS THE ONE TO CHANGE
-fit_type = 'minuit' #For setting the fit method; THIS IS ANOTHER TO CHANGE
+dataset_label = 'nr_charge' #For indexing within datasets; THIS IS THE ONE TO CHANGE
+fit_type = 'test' #For setting the fit method; THIS IS ANOTHER TO CHANGE
 
 #-------------------------------------------------------------------------------#
 if dataset_label == 'er_charge' or dataset_label == 'er_light':
@@ -35,3 +35,9 @@ if __name__ == "__main__":
     elif fit_type == 'curve_fit':
         parameters, x_range, y_or_z_range = ls.curve_fit_least_squares(data, dataset_label, x_index, y_index, z_index, func_index)
         ls.NR_yield_plots(data, func_index, parameters, x_range, y_or_z_range, dataset_label)
+
+    elif fit_type == 'test':
+        ls.parabola_test(data, dataset_label, x_index, y_index, z_index, func_index)
+
+    else:
+        print('Error: Fit type not found!')

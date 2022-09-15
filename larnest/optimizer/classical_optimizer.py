@@ -167,19 +167,24 @@ class LeastSquares:
 
         init_dict = LeastSquares.dict_maker(self, param_list, init_params)
 
-        if dimension == 2:
+        if dimension == 2 and dataset_label != 'er_charge':
             if dataset_label == 'alpha_light':
                 def LSQ(A, B, C, D, E, F, G, H, I, J, K, L, M):
                     return np.sum((np.array(n_yield) - model(np.array(x_arr), A, B, C, D, E, F, G, H, I, J, K, L, M)) ** 2)
 
-            if dataset_label == 'alpha_charge':
+            elif dataset_label == 'alpha_charge':
                 def LSQ(A, B, C, D, E, F, G, H, I, J): 
                     return np.sum((np.array(n_yield) - model(np.array(x_arr), A, B, C, D, E, F, G, H, I, J)) ** 2)
 
-            if dataset_label == 'nr_total':
+            elif dataset_label == 'nr_total':
                 def LSQ(alpha, beta): 
                     return np.sum((np.array(n_yield) - model(np.array(x_arr), alpha, beta)) ** 2)
+
+            else:
+                print('Error: dataset not entered into classical_optimizer.py')
+                return 0
             #c = cost.LeastSquares(x_arr, n_yield, 0, model) #Change from least squares // '''yield_errors'''
+
             minuit = Minuit(LSQ, **init_dict, pedantic=False)        
         
             minuit.get_param_states()
@@ -198,7 +203,7 @@ class LeastSquares:
             index_arr = x_index, y_index, z_index
             LeastSquares.fit_plotter(self, dimension, plot_arrays, index_arr, dataset_label, labels)
 
-        if dimension == 3:
+        elif dimension == 3  and dataset_label != 'er_charge':
             if dataset_label == 'nr_charge':
                 def LSQ(gamma, delta, epsilon, zeta, eta):
                     return np.sum((np.array(n_yield) - model((np.array(x_arr), np.array(y_arr)), gamma, delta, epsilon, zeta, eta)) ** 2)
@@ -206,15 +211,6 @@ class LeastSquares:
             elif dataset_label == 'nr_light':
                 def LSQ(alpha, beta, gamma, delta, epsilon, zeta, eta):
                     return np.sum((np.array(n_yield) - model((np.array(x_arr), np.array(y_arr)), alpha, beta, gamma, delta, epsilon, zeta, eta)) ** 2)
-
-            '''X=(x_arr,y_arr)
-            def LSQ_nr_charge(X, *params_list):
-                return np.sum((np.array(n_yield) - model(X, *params_list)) ** 2)
-
-            minuit_test = Minuit.from_array_func(LSQ_nr_charge, init_params)
-            minuit_test.migrad()'''
-
-            #c = cost.LeastSquares((x_arr,y_arr), n_yield, 0, model)
 
             minuit = Minuit(LSQ, **init_dict, pedantic=False)
             minuit.migrad()
@@ -232,6 +228,8 @@ class LeastSquares:
             plot_arrays = x_arr, y_arr, n_yield, X, Y, Z_fit
             index_arr = x_index, y_index, z_index
             LeastSquares.fit_plotter(self, dimension, plot_arrays, index_arr, dataset_label, labels)
+
+        #Put an else, error statement here
 #-----------------------------------------------------------------------------#
     def curve_fit_least_squares(self, dataset_label, x_index, y_index, z_index, func_index): #Fitting the data with curve_fit()
         model, init_params, dimension, param_list = ms.selector(self, func_index)
@@ -349,3 +347,47 @@ class LeastSquares:
         #print(doke_birks)
         return alpha, beta, gamma, doke_birks
 #-----------------------------------------------------------------------------#
+    def parabola_test(self, dataset_label, x_index, y_index, z_index, func_index): 
+        #Uses minuit to fit a parabola to the data to ensure that it converges in the first place.
+        model, init_params, dimension, param_list = ms.selector(self, func_index)
+        x_arr, y_arr, n_yield, labels, yield_err_index, x_err_index, yield_errors, x_arr_errors = LeastSquares.data_initializer(self, dataset_label, x_index, y_index, z_index, func_index)
+        x_range, y_range = LeastSquares.range_generator(self, dataset_label, x_arr, y_arr)
+        init_dict = LeastSquares.dict_maker(self, param_list, init_params)
+
+        if dimension == 2:
+            def parab_2d(x_arr, p):
+                return p*x_arr**2
+            def LSQ(p):
+                return np.sum((np.array(n_yield) - parab_2d(np.array(x_arr), p)) ** 2)
+            minuit = Minuit(LSQ, p=-1, pedantic=False)
+
+        if dimension == 3:
+            def parab_3d(X, px, py):
+                (x_arr, y_arr) = X
+                return px*x_arr**2 + py*y_arr**2
+            def LSQ(px, py):
+                return np.sum((np.array(n_yield) - parab_3d((np.array(x_arr), np.array(y_arr)), px, py)) ** 2)
+            minuit = Minuit(LSQ, px=-1, py=-1, pedantic=False)       
+    
+        minuit.get_param_states()
+        minuit.migrad()
+        fit_values = minuit.values
+
+        param_values = []
+        for value in minuit.values:
+            #print(minuit.values[value])
+            param_values.append(minuit.values[value])
+        print('Parameters: ', param_values)
+
+        if dimension == 2:
+            fit_z = parab_2d(x_range, *param_values) #2d fit stuff
+            plot_arrays = x_arr, y_arr, n_yield, x_range, y_range, fit_z, yield_errors, x_arr_errors
+            index_arr = x_index, y_index, z_index
+            LeastSquares.fit_plotter(self, dimension, plot_arrays, index_arr, dataset_label, labels)
+        elif dimension == 3: 
+            X, Y = np.meshgrid(x_range, y_range) #3d fit stuff
+            Z_fit = parab_3d((X,Y), *param_values)
+            plot_arrays = x_arr, y_arr, n_yield, X, Y, Z_fit
+            index_arr = x_index, y_index, z_index
+            LeastSquares.fit_plotter(self, dimension, plot_arrays, index_arr, dataset_label, labels)
+        
