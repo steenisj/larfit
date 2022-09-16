@@ -167,69 +167,42 @@ class LeastSquares:
 
         init_dict = LeastSquares.dict_maker(self, param_list, init_params)
 
-        if dimension == 2 and dataset_label != 'er_charge':
-            if dataset_label == 'alpha_light':
-                def LSQ(A, B, C, D, E, F, G, H, I, J, K, L, M):
-                    return np.sum((np.array(n_yield) - model(np.array(x_arr), A, B, C, D, E, F, G, H, I, J, K, L, M)) ** 2)
+        if dimension == 2:
+            def LSQ(*args):
+                return np.sum((np.array(n_yield) - model(np.array(x_arr), *args)) ** 2)
 
-            elif dataset_label == 'alpha_charge':
-                def LSQ(A, B, C, D, E, F, G, H, I, J): 
-                    return np.sum((np.array(n_yield) - model(np.array(x_arr), A, B, C, D, E, F, G, H, I, J)) ** 2)
+        elif dimension == 3:
+            def LSQ(*args):
+                return np.sum((np.array(n_yield) - model((np.array(x_arr), np.array(y_arr)), *args)) ** 2)
 
-            elif dataset_label == 'nr_total':
-                def LSQ(alpha, beta): 
-                    return np.sum((np.array(n_yield) - model(np.array(x_arr), alpha, beta)) ** 2)
+        minuit = Minuit(LSQ, name=param_list, **init_dict, pedantic=False)        
+    
+        minuit.get_param_states()
+        minuit.migrad()
+        fit_values = minuit.values
 
-            else:
-                print('Error: dataset not entered into classical_optimizer.py')
-                return 0
-            #c = cost.LeastSquares(x_arr, n_yield, 0, model) #Change from least squares // '''yield_errors'''
+        param_values = []
+        for value in minuit.values:
+            #print(minuit.values[value])
+            param_values.append(minuit.values[value])
+        print('Parameters: ', param_values)        
 
-            minuit = Minuit(LSQ, **init_dict, pedantic=False)        
-        
-            minuit.get_param_states()
-            minuit.migrad()
-            fit_values = minuit.values
-
-            param_values = []
-            for value in minuit.values:
-                #print(minuit.values[value])
-                param_values.append(minuit.values[value])
-            print('Parameters: ', param_values)        
-
+        if dimension == 2:
             fit_z = model(x_range, *param_values) #2d fit stuff
 
             plot_arrays = x_arr, y_arr, n_yield, x_range, y_range, fit_z, yield_errors, x_arr_errors
             index_arr = x_index, y_index, z_index
             LeastSquares.fit_plotter(self, dimension, plot_arrays, index_arr, dataset_label, labels)
+            return param_values, x_range, fit_z
 
-        elif dimension == 3  and dataset_label != 'er_charge':
-            if dataset_label == 'nr_charge':
-                def LSQ(gamma, delta, epsilon, zeta, eta):
-                    return np.sum((np.array(n_yield) - model((np.array(x_arr), np.array(y_arr)), gamma, delta, epsilon, zeta, eta)) ** 2)
-
-            elif dataset_label == 'nr_light':
-                def LSQ(alpha, beta, gamma, delta, epsilon, zeta, eta):
-                    return np.sum((np.array(n_yield) - model((np.array(x_arr), np.array(y_arr)), alpha, beta, gamma, delta, epsilon, zeta, eta)) ** 2)
-
-            minuit = Minuit(LSQ, **init_dict, pedantic=False)
-            minuit.migrad()
-
-            param_values = []
-            for value in minuit.values:
-                #print(minuit.values[value])
-                param_values.append(minuit.values[value])  
-
-            print('Parameters: ', param_values)      
-
+        elif dimension == 3:
             X, Y = np.meshgrid(x_range, y_range)
             Z_fit = model((X,Y), *param_values)
 
             plot_arrays = x_arr, y_arr, n_yield, X, Y, Z_fit
             index_arr = x_index, y_index, z_index
             LeastSquares.fit_plotter(self, dimension, plot_arrays, index_arr, dataset_label, labels)
-
-        #Put an else, error statement here
+            return param_values, x_range, y_range
 #-----------------------------------------------------------------------------#
     def curve_fit_least_squares(self, dataset_label, x_index, y_index, z_index, func_index): #Fitting the data with curve_fit()
         model, init_params, dimension, param_list = ms.selector(self, func_index)

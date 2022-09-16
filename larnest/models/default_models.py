@@ -16,41 +16,51 @@ class DefaultModels:
         y = A*np.exp(-1*B*x**2)
         return y
 
-    def NRElectronYields(X, gamma, delta, epsilon, zeta, eta):
+    def NRElectronYields(X, *args):
         energy, Efield = X
+        gamma, delta, epsilon, zeta, eta = args
         return (1/(gamma*(Efield**delta)))*(1/np.sqrt(energy+epsilon))*(1-(1/(1+(energy/zeta)**eta)))
 
-    def NRTotalYields(energy, alpha, beta):
+    def NRTotalYields(energy, *args):
+        alpha, beta = args
         return alpha*energy**beta
 
-    def NRPhotonYields(X, alpha, beta, gamma, delta, epsilon, zeta, eta):
+    def NRPhotonYields(X, *args):
         energy, Efield = X
+        alpha, beta, gamma, delta, epsilon, zeta, eta = args
         return (alpha*energy**beta) - ((1/(gamma*(Efield**delta)))*(1/np.sqrt(energy+epsilon)))
 
-    def alphaPhotonYields(Efield, A, B, C, D, E, F, G, H, I, J, K, L, M):
+    def alphaPhotonYields(Efield, *args):
+        A, B, C, D, E, F, G, H, I, J, K, L, M = args
         quench = 1.0/(A*Efield**B)
         fieldTerm = H*(I+(Efield/J)**K)**(L)
         return quench*C*(D*E+(D/F)*(1-(G*np.log(1+(D/F)*(fieldTerm/M))/((D/F)*fieldTerm))))
 
-    def alphaElectronYields(Efield, A, B, C, D, E, F, G, H, I, J):
+    def alphaElectronYields(Efield, *args):
+        A, B, C, D, E, F, G, H, I, J = args
         fieldTerm = F*(G+Efield**H)**(I)
         return A*(B - (B*C + (B/D)*(1-(E*np.log(1+(B/D)*(fieldTerm/J))/((B/D)*fieldTerm)))))
 
-    def GetERElectronYieldsAlpha(Efield, A, B, C, D, E, F, G):
+    def GetERElectronYieldsAlpha(Efield, *args):
+        A, B, C, D, E, F, G = args
         density = 1.396 #Density of LAr in g/L
         return A + B/(C+(Efield/(D+E*np.exp(density/F)))**G)
 
-    def GetERElectronYieldsBeta(Efield, A, B, C, D, E, F):
+    def GetERElectronYieldsBeta(Efield, *args):
+        A, B, C, D, E, F = args
         return A + B*(C+(Efield/D)**E)**F
 
-    def GetERElectronYieldsGamma(Efield, A, B, C, D, E, F, G): #fWorkQuantaFunction?
+    def GetERElectronYieldsGamma(Efield, *args): #fWorkQuantaFunction?
+        A, B, C, D, E, F, G = args
         WorkQuantaFunction = 19.5
         return A*((B/WorkQuantaFunction)+C*(D+(E/((Efield/F)**G))))
 
-    def GetERElectronYieldsDokeBirks(Efield, A, B, C, D, E):
+    def GetERElectronYieldsDokeBirks(Efield, *args):
+        A, B, C, D, E = args
         return A+B/(C+(Efield/D)**E)
 
-    def GetERElectronYields(X, p1, p2, p3, p4, p5, delta, let):
+    def GetERElectronYields(X, *args):
+        p1, p2, p3, p4, p5, delta, let = args
         energy, Efield = X
         return DefaultModels.alpha*DefaultModels.beta + (DefaultModels.gamma-DefaultModels.alpha*DefaultModels.beta)/(p1+(p2*(energy+0.5)**p3)) + delta/(p5 + DefaultModels.doke_birks*energy**let)
 
