@@ -11,8 +11,9 @@ from toy_model import ToyModel as tm
 from classical_optimizer import LeastSquares as ls
 
 #Options for plotting the data:
-dataset_label = 'nr_charge' #For indexing within datasets; THIS IS THE ONE TO CHANGE
-fit_type = 'curve_fit' #For setting the fit method; THIS IS ANOTHER TO CHANGE
+dataset_label = 'alpha_light' #For indexing within datasets; THIS IS THE ONE TO CHANGE
+fit_type = 'test' #For setting the fit method; THIS IS ANOTHER TO CHANGE
+off_parameters = {'B': 0} #For the 'test' option, list the values of the parameters to be 'off'
 
 #-------------------------------------------------------------------------------#
 if dataset_label == 'er_charge' or dataset_label == 'er_light':
@@ -41,11 +42,12 @@ if __name__ == "__main__":
         ls.NR_yield_plots(data, func_index, parameters, x_range, y_or_z_range, dataset_label)
 
     elif fit_type == 'test':
-        ls.parabola_test(data, dataset_label, x_index, y_index, z_index, func_index)
+        #ls.parabola_test(data, dataset_label, x_index, y_index, z_index, func_index)
           
         toy_model = tm(dataset_label, func_index, x_index, y_index, z_index)
         x_data, y_data, z_data = tm.toy_data_generator(toy_model)
-        tm.minuit_data_fitter(toy_model)
+        #tm.minuit_data_fitter(toy_model, x_data, y_data, z_data)
+        tm.param_rollout(toy_model, x_data, y_data, z_data, off_parameters)
 
     else:
         print('Error: Fit type not found!')

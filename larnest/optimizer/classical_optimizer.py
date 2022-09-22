@@ -175,7 +175,7 @@ class LeastSquares:
             def LSQ(*args):
                 return np.sum((np.array(n_yield) - model((np.array(x_arr), np.array(y_arr)), *args)) ** 2)
 
-        minuit = Minuit(LSQ, name=param_list, **init_dict, pedantic=False)        
+        minuit = Minuit(LSQ, name=param_list, **init_dict, pedantic=False)  #Include errors!!!!!!!       
     
         minuit.get_param_states()
         minuit.migrad()

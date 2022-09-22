@@ -27,7 +27,7 @@ class DefaultModels:
 
     def NRPhotonYields(X, *args):
         energy, Efield = X
-        alpha, beta, gamma, delta, epsilon, zeta, eta = args
+        alpha, beta, gamma, delta, epsilon = args
         return (alpha*energy**beta) - ((1/(gamma*(Efield**delta)))*(1/np.sqrt(energy+epsilon)))
 
     def alphaPhotonYields(Efield, *args):
@@ -93,8 +93,8 @@ class ModelSelector:
             return DefaultModels.NRElectronYields, init_params, dimension, param_list
         elif func_index == 2: #2  
             dimension = 3
-            init_params = [11.1, 0.087, 0.1, -0.0932, 2.998, 0.3, 2.94]
-            param_list = ['alpha', 'beta', 'gamma', 'delta', 'epsilon', 'zeta', 'eta']
+            init_params = [11.1, 0.087, 0.1, -0.0932, 2.998]
+            param_list = ['alpha', 'beta', 'gamma', 'delta', 'epsilon']
             return DefaultModels.NRPhotonYields, init_params, dimension, param_list
         elif func_index == 3: #3 
             dimension = 2

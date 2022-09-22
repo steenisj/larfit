@@ -31,7 +31,13 @@ class ToyModel:
         self.dimension = dimension
         self.param_list = param_list
 
-        dict = ls.dict_maker(self, self.param_list, self.init_params)
+        #Let's make a random offset of the initial parameters to make sure that the fit actually works!
+        z_err = 0.1 #--> For tweaking how much we deviate the initial parameters before the fit<---#
+        for i in np.arange(len(self.init_params)):
+            rng = np.random.default_rng(1)
+            self.rand_init_params = rng.normal(self.init_params, z_err)
+
+        dict = ls.dict_maker(self, self.param_list, self.rand_init_params)
         self.dict = dict
 
     def toy_data_generator(self):
@@ -40,7 +46,7 @@ class ToyModel:
         x_data = np.arange(0,1000)
         y_data = np.arange(0,1000)
 
-        print(type(x_data[0]))
+        #print(type(x_data[0]))
 
         possible_x_data = np.arange(0,1000)
         possible_y_data = np.arange(0,1000)
@@ -57,7 +63,7 @@ class ToyModel:
         x_data = np.array(x_data)
         y_data = np.array(y_data)
 
-        if self.dimension == 2:
+        if self.dimension == 2 and self.dataset_label != 'er_charge':
             z_data = self.model(x_data, *self.init_params)
 
             rng = np.random.default_rng(1)
@@ -69,7 +75,7 @@ class ToyModel:
 
             return x_data, y_data, z_data
 
-        if self.dimension == 3:
+        elif self.dimension == 3 and self.dataset_label != 'er_charge':
             z_data = self.model((x_data, y_data), *self.init_params)
 
             rng = np.random.default_rng(1)
@@ -79,9 +85,12 @@ class ToyModel:
 
             return x_data, y_data, z_data
 
-    def minuit_data_fitter(self):
-        x_data, y_data, z_data = self.toy_data_generator()
-        x_range, y_range = ls.range_generator(ls, self.dataset_label, x_data, y_data)
+        elif self.dataset_label == 'er_charge':
+            pass
+
+    def minuit_data_fitter(self, x_data, y_data, z_data):
+        #x_data, y_data, z_data = self.toy_data_generator()
+        #x_range, y_range = ls.range_generator(ls, self.dataset_label, x_data, y_data)
 
         if self.dimension == 2:
             def LSQ(*args):
@@ -89,17 +98,10 @@ class ToyModel:
 
         elif self.dimension == 3:
             def LSQ(*args):
-                return np.sum((np.array(z_data) - self.model((np.array(x_data), np.array(y_data)), *args)) ** 2)
-
-        minuit = Minuit(LSQ, name=self.param_list, **self.dict, pedantic=False)        
-
-        #Let's make a random offset of the initial parameters to make sure that the fit actually works!
-        z_err = 1
-        for i in np.arange(len(self.init_params)):
-            rng = np.random.default_rng(1)
-            self.init_params = rng.normal(self.init_params, z_err)
+                return np.sum((np.array(z_data) - self.model((np.array(x_data), np.array(y_data)), *args)) ** 2)        
 
         print('init_params: ', self.init_params)
+        minuit = Minuit(LSQ, name=self.param_list, **self.dict, pedantic=False)
 
         minuit.get_param_states()
         minuit.migrad()
@@ -109,8 +111,12 @@ class ToyModel:
         for value in minuit.values:
             #print(minuit.values[value])
             param_values.append(minuit.values[value])
-        print('Parameters: ', param_values)        
+        print('Parameters: ', param_values) 
 
+        self.toy_plotter(x_data, y_data, z_data, param_values)       
+
+    def toy_plotter(self, x_data, y_data, z_data, param_values):
+        x_range, y_range = ls.range_generator(ls, self.dataset_label, x_data, y_data)
         if self.dimension == 2:
             fit_z = self.model(x_range, *param_values) #2d fit stuff
 
@@ -137,3 +143,48 @@ class ToyModel:
             #ax.legend()
             fig.tight_layout()
             plt.show()
+
+    def param_rollout(self, x_data, y_data, z_data, off_parameters): #Still in development
+        #Making a dict to force the fit parameters constant
+        param_keys = list(self.dict.keys())
+
+        fix_keys = []
+        truths = []
+        for i in np.arange(len(param_keys)):
+            fix_keys.append('fix_' + param_keys[i])
+
+        for j in np.arange(len(param_keys)):
+            if param_keys[j] in off_parameters.keys():
+                truths.append(True)
+            else:
+                truths.append(False)
+
+        for n in np.arange(len(fix_keys)):
+            self.dict[fix_keys[n]] = truths[n]
+
+        for k in param_keys:
+            if k in off_parameters.keys():
+                self.dict[k] = off_parameters[k]
+            else:
+                continue
+
+        if self.dimension == 2:
+            def LSQ(*args):
+                return np.sum((np.array(z_data) - self.model(np.array(x_data), *args)) ** 2)
+
+        elif self.dimension == 3:
+            def LSQ(*args):
+                return np.sum((np.array(z_data) - self.model((np.array(x_data), np.array(y_data)), *args)) ** 2)
+
+        minuit = Minuit(LSQ, name=self.param_list, **self.dict, pedantic=False)
+        minuit.get_param_states()
+        minuit.migrad()
+        fit_values = minuit.values
+
+        param_values = []
+        for value in minuit.values:
+            #print(minuit.values[value])
+            param_values.append(minuit.values[value])
+        print('Parameters: ', param_values) 
+
+        self.toy_plotter(x_data, y_data, z_data, param_values) 
