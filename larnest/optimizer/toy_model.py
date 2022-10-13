@@ -39,10 +39,10 @@ class ToyModel:
 
         dict = ls.dict_maker(self, self.param_list, self.rand_init_params)
         self.dict = dict
-
+#-----------------------------------------------------------------------------#
     def toy_data_generator(self):
         #print(dict)
-        num_data_points = 1000
+        num_data_points = 200
         x_data = np.arange(0,1000)
         y_data = np.arange(0,1000)
 
@@ -87,7 +87,7 @@ class ToyModel:
 
         elif self.dataset_label == 'er_charge':
             pass
-
+#-----------------------------------------------------------------------------#
     def minuit_data_fitter(self, x_data, y_data, z_data):
         #x_data, y_data, z_data = self.toy_data_generator()
         #x_range, y_range = ls.range_generator(ls, self.dataset_label, x_data, y_data)
@@ -114,7 +114,7 @@ class ToyModel:
         print('Parameters: ', param_values) 
 
         self.toy_plotter(x_data, y_data, z_data, param_values)       
-
+#-----------------------------------------------------------------------------#
     def toy_plotter(self, x_data, y_data, z_data, param_values):
         x_range, y_range = ls.range_generator(ls, self.dataset_label, x_data, y_data)
         if self.dimension == 2:
@@ -143,30 +143,35 @@ class ToyModel:
             #ax.legend()
             fig.tight_layout()
             plt.show()
-
-    def param_rollout(self, x_data, y_data, z_data, off_parameters): #Still in development
+#-----------------------------------------------------------------------------#
+    def param_rollout(self, x_data, y_data, z_data, off_parameters, param_dict, plotting_option):
         #Making a dict to force the fit parameters constant
         param_keys = list(self.dict.keys())
-
         fix_keys = []
         truths = []
+        dict_copy = self.dict
+
         for i in np.arange(len(param_keys)):
-            fix_keys.append('fix_' + param_keys[i])
-
-        for j in np.arange(len(param_keys)):
-            if param_keys[j] in off_parameters.keys():
-                truths.append(True)
-            else:
-                truths.append(False)
-
-        for n in np.arange(len(fix_keys)):
-            self.dict[fix_keys[n]] = truths[n]
-
-        for k in param_keys:
-            if k in off_parameters.keys():
-                self.dict[k] = off_parameters[k]
-            else:
+            if 'fix_' in param_keys[i]:
                 continue
+            #print(param_keys[i])
+            fix_name = 'fix_' + param_keys[i]
+            if len(off_parameters) != 0:
+                if param_keys[i] in off_parameters.keys():
+                    dict_copy[fix_name] = True
+                    dict_copy[param_keys[i]] = off_parameters[param_keys[i]]
+                elif param_keys[i] not in off_parameters.keys():
+                    dict_copy[fix_name] = False
+                    if len(param_dict) != 0:
+                        dict_copy[param_keys[i]] = param_dict[param_keys[i]]
+                    else:
+                        continue
+            else:
+                dict_copy[fix_name] = False
+                if len(param_dict) != 0:
+                    dict_copy[param_keys[i]] = param_dict[param_keys[i]]
+                else:
+                    continue
 
         if self.dimension == 2:
             def LSQ(*args):
@@ -176,15 +181,42 @@ class ToyModel:
             def LSQ(*args):
                 return np.sum((np.array(z_data) - self.model((np.array(x_data), np.array(y_data)), *args)) ** 2)
 
-        minuit = Minuit(LSQ, name=self.param_list, **self.dict, pedantic=False)
+        print('Initial_Dict', dict_copy)
+        minuit = Minuit(LSQ, name=self.param_list, **dict_copy, pedantic=False)
         minuit.get_param_states()
         minuit.migrad()
         fit_values = minuit.values
 
         param_values = []
+        param_dict = {}
         for value in minuit.values:
-            #print(minuit.values[value])
+            param_dict[value] = minuit.values[value]
             param_values.append(minuit.values[value])
-        print('Parameters: ', param_values) 
+        #print('Parameters: ', param_values) 
+        print('Final_Dict: \n', param_dict)
 
-        self.toy_plotter(x_data, y_data, z_data, param_values) 
+        if plotting_option == True:
+            self.toy_plotter(x_data, y_data, z_data, param_values) 
+
+        return param_values, param_dict
+#-----------------------------------------------------------------------------#
+    def param_cycler(self, off_parameters, x_data, y_data, z_data, plotting_option):
+        parameters = []
+        parameters_dictionary = {}
+        feed_off_params = off_parameters
+        off_list = list(off_parameters.keys())
+
+        for i in np.arange(len(off_list)+1):
+            print(i)
+            param_values, param_dict = self.param_rollout(x_data, y_data, z_data, feed_off_params, parameters_dictionary, plotting_option)
+            parameters = param_values
+            parameters_dictionary = param_dict
+            if i < len(off_list):
+                del feed_off_params[off_list[i]] #Remove the entry from the dict
+            else:
+                return 0 
+            #print(off_parameters)
+
+
+            ##Put a check in here to make sure we're not getting zeros for the fit parameters that should be fit
+            ##Define a bool-successful variable at the beginning to check whether we have this bug

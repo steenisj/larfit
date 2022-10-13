@@ -11,9 +11,10 @@ from toy_model import ToyModel as tm
 from classical_optimizer import LeastSquares as ls
 
 #Options for plotting the data:
-dataset_label = 'alpha_light' #For indexing within datasets; THIS IS THE ONE TO CHANGE
+dataset_label = 'nr_light' #For indexing within datasets; THIS IS THE ONE TO CHANGE
 fit_type = 'test' #For setting the fit method; THIS IS ANOTHER TO CHANGE
-off_parameters = {'B': 0} #For the 'test' option, list the values of the parameters to be 'off'
+off_parameters = {'beta':0, 'gamma':1, 'delta':0, 'epsilon':0} #For the 'test' option, list the values of the parameters to be 'off'
+plotting_option = False #To determine whether to plot the fits for the rollout 'test' option
 
 #-------------------------------------------------------------------------------#
 if dataset_label == 'er_charge' or dataset_label == 'er_light':
@@ -47,7 +48,8 @@ if __name__ == "__main__":
         toy_model = tm(dataset_label, func_index, x_index, y_index, z_index)
         x_data, y_data, z_data = tm.toy_data_generator(toy_model)
         #tm.minuit_data_fitter(toy_model, x_data, y_data, z_data)
-        tm.param_rollout(toy_model, x_data, y_data, z_data, off_parameters)
+        #param_values = tm.param_rollout(toy_model, x_data, y_data, z_data, off_parameters, {})
+        tm.param_cycler(toy_model, off_parameters, x_data, y_data, z_data, plotting_option)
 
     else:
         print('Error: Fit type not found!')
