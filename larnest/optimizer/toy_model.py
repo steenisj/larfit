@@ -206,17 +206,20 @@ class ToyModel:
         feed_off_params = off_parameters
         off_list = list(off_parameters.keys())
 
-        for i in np.arange(len(off_list)+1):
+        i=-1
+        while True:
+            i += 1
             print(i)
+            newest_param = self.param_list[i]
             param_values, param_dict = self.param_rollout(x_data, y_data, z_data, feed_off_params, parameters_dictionary, plotting_option)
             parameters = param_values
             parameters_dictionary = param_dict
-            if i < len(off_list):
+
+            if param_dict[newest_param] == 0:
+                i += -1
+                print("Fitting Error: Try Running Again")
+                return 0
+            elif i < len(off_list):
                 del feed_off_params[off_list[i]] #Remove the entry from the dict
             else:
                 return 0 
-            #print(off_parameters)
-
-
-            ##Put a check in here to make sure we're not getting zeros for the fit parameters that should be fit
-            ##Define a bool-successful variable at the beginning to check whether we have this bug
