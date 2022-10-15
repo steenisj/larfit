@@ -85,66 +85,79 @@ class ModelSelector:
             dimension = 2
             init_params = [1,1]
             param_list = ['A','B']
-            return DefaultModels.Gauss, init_params, dimension, param_list
+            off_parameters = {'B': 0}
+            return DefaultModels.Gauss, init_params, dimension, param_list, off_parameters
         elif func_index == 1: #1 
             dimension = 3
             init_params = [0.1, -0.0932, 2.998, 0.3, 2.94]
             param_list = ['gamma', 'delta', 'epsilon', 'zeta', 'eta']
-            return DefaultModels.NRElectronYields, init_params, dimension, param_list
+            off_parameters = {'delta': 0, 'epsilon': 0, 'zeta': 1, 'eta': 0}
+            return DefaultModels.NRElectronYields, init_params, dimension, param_list, off_parameters
         elif func_index == 2: #2  
             dimension = 3
             init_params = [11.1, 0.087, 0.1, -0.0932, 2.998]
             param_list = ['alpha', 'beta', 'gamma', 'delta', 'epsilon']
-            return DefaultModels.NRPhotonYields, init_params, dimension, param_list
+            off_parameters = {'beta':0, 'gamma':1, 'delta':0, 'epsilon':0}
+            return DefaultModels.NRPhotonYields, init_params, dimension, param_list, off_parameters
         elif func_index == 3: #3 
             dimension = 2
             init_params = [11.1, 0.087]
             param_list = ['alpha', 'beta']
-            return DefaultModels.NRTotalYields, init_params, dimension, param_list
+            off_parameters = {'beta': 0}
+            return DefaultModels.NRTotalYields, init_params, dimension, param_list, off_parameters
         elif func_index == 4: #4  
             dimension = 2
             init_params = [1.5, -0.012, 1/6500, 278037, 0.17, 1.21, 2, 0.6535, 4.985, 10.1, 1.21, -0.9798, 3]
             param_list = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M']
-            return DefaultModels.alphaPhotonYields, init_params, dimension, param_list
+            off_parameters = {'A': 0, 'B': 0, 'D': 0, 'E': 0, 'F': 1, 'G': 0, 'H': 0, 'I': 0, 'J': 0, 'K': 0, 'L': 0, 'M': 1}
+            return DefaultModels.alphaPhotonYields, init_params, dimension, param_list, off_parameters
         elif func_index == 5: #5 
             dimension = 2
             init_params = [1/6200, 64478399, 0.174, 1.21, 0.0285, 0.01, 4.716, 7.72, -0.11, 3]
             param_list = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
-            return DefaultModels.alphaElectronYields, init_params, dimension, param_list
+            off_parameters = {'B': 0, 'C': 0, 'D': 1, 'E': 0, 'F': 1, 'G': 0, 'H': 0, 'I': 0, 'J': 0}
+            return DefaultModels.alphaElectronYields, init_params, dimension, param_list, off_parameters
         elif func_index == 6: #6  
             dimension = 3
             init_params = [1, 10.3, 13.1, 0.1, 0.7, 15.7, -2.1]
             param_list = ['p1', 'p2', 'p3', 'p4', 'p5', 'delta', 'let']
-            return DefaultModels.GetERElectronYields, init_params, dimension, param_list       
+            off_parameters = {'p2': 0, 'p3': 0, 'p4': 0, 'p5': 1, 'delta': 0, 'let': 0}
+            return DefaultModels.GetERElectronYields, init_params, dimension, param_list, off_parameters       
         elif func_index == 7: #7 
             dimension = 2
             init_params = [None]
             param_list = [None]
-            return DefaultModels.ERPhotonYields, init_params, dimension, param_list
+            off_parameters = {}
+            return DefaultModels.ERPhotonYields, init_params, dimension, param_list, off_parameters
         elif func_index == 8: #8 
             dimension = 2
             init_params = [32.998, -552.988, 17.23, -4.7, 0.025, 0.27, 0.242]
             param_list = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
-            return DefaultModels.GetERElectronYieldsAlpha, init_params, dimension, param_list
+            off_parameters = {'B': 0, 'C': 0, 'D': 1, 'E': 0, 'F': 1, 'G': 0}
+            return DefaultModels.GetERElectronYieldsAlpha, init_params, dimension, param_list, off_parameters
         elif func_index == 9: #9 
             dimension = 2
             init_params = [0.778, 25.9, 1.105, 0.4, 4.55, -7.5]
             param_list = ['A', 'B', 'C', 'D', 'E', 'F']
-            return DefaultModels.GetERElectronYieldsBeta, init_params, dimension, param_list
+            off_parameters = {'B': 0, 'C': 0, 'D': 1, 'E': 0, 'F': 0}
+            return DefaultModels.GetERElectronYieldsBeta, init_params, dimension, param_list, off_parameters
         elif func_index == 10: #10
             dimension = 2
             init_params = [0.6595, 1000, 6.5, 5, -0.5, 1047.4, 0.0185]
             param_list = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
-            return DefaultModels.GetERElectronYieldsGamma, init_params, dimension, param_list
+            off_parameters = {'B': 0, 'C': 1, 'D': 1, 'E': 0, 'F': 1, 'G': 0}
+            return DefaultModels.GetERElectronYieldsGamma, init_params, dimension, param_list, off_parameters
         elif func_index == 11: #11
             dimension = 2
             init_params = [1052.3, 14159350000-1652.3, -5, 0.158, 1.84]
             param_list = ['A', 'B', 'C', 'D', 'E']
-            return DefaultModels.GetERElectronYieldsDokeBirks, init_params, dimension, param_list
+            off_parameters = {'B': 0, 'C': 1, 'D': 1, 'E': 0}
+            return DefaultModels.GetERElectronYieldsDokeBirks, init_params, dimension, param_list, off_parameters
         elif func_index == 12: #12
             dimension = 2
             init_params = [None]
             param_list = [None]
-            return DefaultModels.GetERTotalYields, init_params, dimension, param_list
+            off_parameters = {}
+            return DefaultModels.GetERTotalYields, init_params, dimension, param_list, off_parameters
         else:
             print("Error with Model Selector. Take a peak at default_models.py!")

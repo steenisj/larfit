@@ -25,11 +25,12 @@ class ToyModel:
         self.y_index = y_index
         self.z_index = z_index
 
-        model, init_params, dimension, param_list = ms.selector(self, func_index)
+        model, init_params, dimension, param_list, off_parameters = ms.selector(self, func_index)
         self.model = model
         self.init_params = init_params
         self.dimension = dimension
         self.param_list = param_list
+        self.off_parameters = off_parameters
 
         #Let's make a random offset of the initial parameters to make sure that the fit actually works!
         z_err = 0.1 #--> For tweaking how much we deviate the initial parameters before the fit<---#
@@ -180,8 +181,6 @@ class ToyModel:
         elif self.dimension == 3:
             def LSQ(*args):
                 return np.sum((np.array(z_data) - self.model((np.array(x_data), np.array(y_data)), *args)) ** 2)
-
-        print('Initial_Dict', dict_copy)
         minuit = Minuit(LSQ, name=self.param_list, **dict_copy, pedantic=False)
         minuit.get_param_states()
         minuit.migrad()
@@ -193,7 +192,11 @@ class ToyModel:
             param_dict[value] = minuit.values[value]
             param_values.append(minuit.values[value])
         #print('Parameters: ', param_values) 
-        print('Final_Dict: \n', param_dict)
+        for n in param_dict.keys():
+            dict_copy[n] = round(dict_copy[n], 5)
+            param_dict[n] = round(param_dict[n], 5)
+        print('\n Initial_Dict', dict_copy)
+        print('Fit_Params: ', param_dict, '\n')
 
         if plotting_option == True:
             self.toy_plotter(x_data, y_data, z_data, param_values) 
@@ -203,23 +206,33 @@ class ToyModel:
     def param_cycler(self, off_parameters, x_data, y_data, z_data, plotting_option):
         parameters = []
         parameters_dictionary = {}
-        feed_off_params = off_parameters
+        feed_off_params = off_parameters.copy()
         off_list = list(off_parameters.keys())
+        cycle_count = 0
 
         i=-1
         while True:
             i += 1
-            print(i)
+            #print(i)
             newest_param = self.param_list[i]
             param_values, param_dict = self.param_rollout(x_data, y_data, z_data, feed_off_params, parameters_dictionary, plotting_option)
             parameters = param_values
             parameters_dictionary = param_dict
 
-            if param_dict[newest_param] == 0:
-                i += -1
-                print("Fitting Error: Try Running Again")
+            if cycle_count >= 100:
+                print("#------------------------------------------------------------------#")
+                print("\n Fit attempted too many times. Please re-run!\n")
+                print("#------------------------------------------------------------------#")
                 return 0
+            elif param_dict[newest_param] == 0:
+                i = -1
+                cycle_count += 1 #To tell us how many times we have this error
+                feed_off_params = off_parameters.copy()
+                #print("Test: ", feed_off_params)
+                print("Fitting error, attempting to fit again.")
+                #return 0
             elif i < len(off_list):
+                #print(off_list[i])
                 del feed_off_params[off_list[i]] #Remove the entry from the dict
             else:
-                return 0 
+                return 0

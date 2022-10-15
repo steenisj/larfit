@@ -161,7 +161,7 @@ class LeastSquares:
         return dict
 #-----------------------------------------------------------------------------#
     def minuit_fit(self, dataset_label, x_index, y_index, z_index, func_index): #Fitting the data with minuit
-        model, init_params, dimension, param_list = ms.selector(self, func_index)
+        model, init_params, dimension, param_list, off_parameters = ms.selector(self, func_index)
         x_arr, y_arr, n_yield, labels, yield_err_index, x_err_index, yield_errors, x_arr_errors = LeastSquares.data_initializer(self, dataset_label, x_index, y_index, z_index, func_index)
         x_range, y_range = LeastSquares.range_generator(self, dataset_label, x_arr, y_arr)
 
@@ -205,7 +205,7 @@ class LeastSquares:
             return param_values, x_range, y_range
 #-----------------------------------------------------------------------------#
     def curve_fit_least_squares(self, dataset_label, x_index, y_index, z_index, func_index): #Fitting the data with curve_fit()
-        model, init_params, dimension, param_list = ms.selector(self, func_index)
+        model, init_params, dimension, param_list, off_parameters = ms.selector(self, func_index)
         x_arr, y_arr, n_yield, labels, yield_err_index, x_err_index, yield_errors, x_arr_errors = LeastSquares.data_initializer(self, dataset_label, x_index, y_index, z_index, func_index)
         x_range, y_range = LeastSquares.range_generator(self, dataset_label, x_arr, y_arr)
 
@@ -272,7 +272,7 @@ class LeastSquares:
         if dataset_label != 'nr_charge' and dataset_label != 'nr_light':
             print('Error: Wrong dataset selected. Check NR_yield_plots requirements!')
             return 0
-        model, init_params, dimension, param_list = ms.selector(self, func_index)
+        model, init_params, dimension, param_list, off_parameters = ms.selector(self, func_index)
         y_arr_min = min(y_range)
         y_arr_max = max(y_range)
         E_interval = (y_arr_max - y_arr_min)/10
@@ -322,7 +322,7 @@ class LeastSquares:
 #-----------------------------------------------------------------------------#
     def parabola_test(self, dataset_label, x_index, y_index, z_index, func_index): 
         #Uses minuit to fit a parabola to the data to ensure that it converges in the first place.
-        model, init_params, dimension, param_list = ms.selector(self, func_index)
+        model, init_params, dimension, param_list, off_parameters = ms.selector(self, func_index)
         x_arr, y_arr, n_yield, labels, yield_err_index, x_err_index, yield_errors, x_arr_errors = LeastSquares.data_initializer(self, dataset_label, x_index, y_index, z_index, func_index)
         x_range, y_range = LeastSquares.range_generator(self, dataset_label, x_arr, y_arr)
         init_dict = LeastSquares.dict_maker(self, param_list, init_params)
