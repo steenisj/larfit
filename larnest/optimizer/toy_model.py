@@ -203,11 +203,11 @@ class ToyModel:
 
         return param_values, param_dict
 #-----------------------------------------------------------------------------#
-    def param_cycler(self, off_parameters, x_data, y_data, z_data, plotting_option):
+    def param_cycler(self, x_data, y_data, z_data, plotting_option):
         parameters = []
         parameters_dictionary = {}
-        feed_off_params = off_parameters.copy()
-        off_list = list(off_parameters.keys())
+        feed_off_params = self.off_parameters.copy()
+        off_list = list(self.off_parameters.keys())
         cycle_count = 0
 
         i=-1
@@ -227,7 +227,7 @@ class ToyModel:
             elif param_dict[newest_param] == 0:
                 i = -1
                 cycle_count += 1 #To tell us how many times we have this error
-                feed_off_params = off_parameters.copy()
+                feed_off_params = self.off_parameters.copy()
                 #print("Test: ", feed_off_params)
                 print("Fitting error, attempting to fit again.")
                 #return 0

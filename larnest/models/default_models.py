@@ -111,11 +111,11 @@ class ModelSelector:
             param_list = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M']
             off_parameters = {'A': 0, 'B': 0, 'D': 0, 'E': 0, 'F': 1, 'G': 0, 'H': 0, 'I': 0, 'J': 0, 'K': 0, 'L': 0, 'M': 1}
             return DefaultModels.alphaPhotonYields, init_params, dimension, param_list, off_parameters
-        elif func_index == 5: #5 
+        elif func_index == 5: #5
             dimension = 2
             init_params = [1/6200, 64478399, 0.174, 1.21, 0.0285, 0.01, 4.716, 7.72, -0.11, 3]
             param_list = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
-            off_parameters = {'B': 0, 'C': 0, 'D': 1, 'E': 0, 'F': 1, 'G': 0, 'H': 0, 'I': 0, 'J': 0}
+            off_parameters = {'B': 1, 'C': 0, 'D': 1, 'E': 0, 'J': 1}#,'F': 1, 'G': 0, 'H': 0, 'I': 0}
             return DefaultModels.alphaElectronYields, init_params, dimension, param_list, off_parameters
         elif func_index == 6: #6  
             dimension = 3
