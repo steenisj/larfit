@@ -63,7 +63,7 @@ class DatasetInfo:
             x_index = 'energy' #Energy
             y_index = 'field' #Efield
             z_index = 'yield' #Yield (energy-normalized)
-            func_index = 12 #What model do we want to use?
+            func_index = 8 #What model do we want to use?
 
         else:
             print("ERROR: Wrong type input. Take a peak at analysis.py")
@@ -133,6 +133,10 @@ class LArDataset:
         # for dataset in self.data.keys():
         #     self.data[dataset]['yield_sl'][(self.data[dataset]['yield_sl'] == 0.0)] = 0.05 * self.data[dataset]['yield'][(self.data[dataset]['yield_sl'] == 0.0)]
         #     self.data[dataset]['yield_sh'][(self.data[dataset]['yield_sh'] == 0.0)] = 0.05 * self.data[dataset]['yield'][(self.data[dataset]['yield_sh'] == 0.0)]
+
+    def data_return(self):
+        #print(type(self.data))
+        return self.data
 
     def print_data(self):
         print(self.data)

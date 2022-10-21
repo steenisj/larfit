@@ -11,9 +11,9 @@ from toy_model import ToyModel as tm
 from classical_optimizer import LeastSquares as ls
 
 #Options for plotting the data:
-dataset_label = 'alpha_charge' #For indexing within datasets; THIS IS THE ONE TO CHANGE
-fit_type = 'test' #For setting the fit method; THIS IS ANOTHER TO CHANGE
-plotting_option = True #To determine whether to plot the fits for the rollout 'test' option
+dataset_label = 'nr_charge' #Successful options: nr_light, nr_charge, alpha_light, alpha_charge
+fit_type = 'curve_fit' #Options: curve_fit, minuit, test
+plotting_option = False #To determine whether to plot the fits for the rollout 'test' option
 
 #-------------------------------------------------------------------------------#
 if dataset_label == 'er_charge' or dataset_label == 'er_light':
@@ -25,7 +25,9 @@ else:
 file_location = "/mnt/c/Users/jahe0/Desktop/Physics Research/Graduate Research/larnest_data/"
 data = lar(file_location) #Tell it where to find the data file.
 dataset_info = dat(dataset_label)
+data_return = lar.data_return(data)
 x_index, y_index, z_index, func_index = dataset_info.dataset_info(dataset_label)
+optimize = ls(data_return, dataset_label, x_index, y_index, z_index, func_index)
 
 
 
@@ -34,20 +36,20 @@ if __name__ == "__main__":
     print('dataset_label: ', dataset_label, '\nfit_type: ', fit_type)
     print('#------------------------------------------------------------------#')
     if fit_type == 'minuit':
-        parameters, x_range, y_or_z_range = ls.minuit_fit(data, dataset_label, x_index, y_index, z_index, func_index)
-        ls.NR_yield_plots(data, func_index, parameters, x_range, y_or_z_range, dataset_label)
+        parameters, x_range, y_or_z_range = ls.minuit_fit(optimize)
+        if dataset_label == 'nr_charge' or dataset_label == 'nr_light':
+            ls.NR_yield_plots(optimize, parameters, x_range, y_or_z_range)
 
     elif fit_type == 'curve_fit':
-        parameters, x_range, y_or_z_range = ls.curve_fit_least_squares(data, dataset_label, x_index, y_index, z_index, func_index)
-        ls.NR_yield_plots(data, func_index, parameters, x_range, y_or_z_range, dataset_label)
+        parameters, x_range, y_or_z_range = ls.curve_fit_least_squares(optimize)
+        if dataset_label == 'nr_charge' or dataset_label == 'nr_light':
+            ls.NR_yield_plots(optimize, parameters, x_range, y_or_z_range)
 
     elif fit_type == 'test':
-        ls.parabola_test(data, dataset_label, x_index, y_index, z_index, func_index)
-          
+        ls.parabola_test(optimize, dataset_label, x_index, y_index, z_index, func_index)
+
         toy_model = tm(dataset_label, func_index, x_index, y_index, z_index)
-        x_data, y_data, z_data = tm.toy_data_generator(toy_model)
-        #tm.minuit_data_fitter(toy_model, x_data, y_data, z_data)
-        #param_values = tm.param_rollout(toy_model, x_data, y_data, z_data, off_parameters, {})
+        x_data, y_data, z_data = tm.toy_data_generator(toy_model)        
         tm.param_cycler(toy_model, x_data, y_data, z_data, plotting_option)
 
     else:
