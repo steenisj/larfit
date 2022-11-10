@@ -12,7 +12,7 @@ from classical_optimizer import LeastSquares as ls
 
 #Options for plotting the data:
 dataset_label = 'nr_charge' #Successful options: nr_light, nr_charge, alpha_light, alpha_charge
-fit_type = 'curve_fit' #Options: curve_fit, minuit, test
+fit_type = 'test' #Options: curve_fit, minuit, test
 plotting_option = False #To determine whether to plot the fits for the rollout 'test' option
 
 #-------------------------------------------------------------------------------#
@@ -46,11 +46,11 @@ if __name__ == "__main__":
             ls.NR_yield_plots(optimize, parameters, x_range, y_or_z_range)
 
     elif fit_type == 'test':
-        ls.parabola_test(optimize, dataset_label, x_index, y_index, z_index, func_index)
+        #ls.parabola_test(optimize)
 
-        toy_model = tm(dataset_label, func_index, x_index, y_index, z_index)
-        x_data, y_data, z_data = tm.toy_data_generator(toy_model)        
-        tm.param_cycler(toy_model, x_data, y_data, z_data, plotting_option)
+        toy_model = tm(dataset_label, func_index, x_index, y_index, z_index, data, optimize)
+        #x_data, y_data, z_data = tm.toy_data_generator(toy_model)        
+        tm.param_cycler(toy_model, plotting_option)
 
     else:
         print('Error: Fit type not found!')

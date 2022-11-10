@@ -341,7 +341,7 @@ class LeastSquares:
             for value in minuit.values:
                 #print(minuit.values[value])
                 param_values.append(minuit.values[value])
-            print('Parameters: ', param_values)
+            print('Parabolic Fit Parameters: ', param_values)
 
             if self.dimension == 2:
                 fit_z = parab_2d(x_range, *param_values) #2d fit stuff

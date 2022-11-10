@@ -172,28 +172,3 @@ class ModelSelector:
             print("Error with Model Selector. Take a peak at default_models.py!")
             
         return retrieved_models, init_params, dimension, param_list, off_parameters
-
-        '''elif func_index == 8: #8 
-            dimension = 2
-            init_params = [32.998, -552.988, 17.23, -4.7, 0.025, 0.27, 0.242]
-            param_list = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
-            off_parameters = {'B': 0, 'C': 0, 'D': 1, 'E': 0, 'F': 1, 'G': 0}
-            return DefaultModels.GetERElectronYieldsAlpha, init_params, dimension, param_list, off_parameters
-        elif func_index == 9: #9 
-            dimension = 2
-            init_params = [0.778, 25.9, 1.105, 0.4, 4.55, -7.5]
-            param_list = ['A', 'B', 'C', 'D', 'E', 'F']
-            off_parameters = {'B': 0, 'C': 0, 'D': 1, 'E': 0, 'F': 0}
-            return DefaultModels.GetERElectronYieldsBeta, init_params, dimension, param_list, off_parameters
-        elif func_index == 10: #10
-            dimension = 2
-            init_params = [0.6595, 1000, 6.5, 5, -0.5, 1047.4, 0.0185]
-            param_list = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
-            off_parameters = {'B': 0, 'C': 1, 'D': 1, 'E': 0, 'F': 1, 'G': 0}
-            return DefaultModels.GetERElectronYieldsGamma, init_params, dimension, param_list, off_parameters
-        elif func_index == 11: #11
-            dimension = 2
-            init_params = [1052.3, 14159350000-1652.3, -5, 0.158, 1.84]
-            param_list = ['A', 'B', 'C', 'D', 'E']
-            off_parameters = {'B': 0, 'C': 1, 'D': 1, 'E': 0}
-            return DefaultModels.GetERElectronYieldsDokeBirks, init_params, dimension, param_list, off_parameters'''
